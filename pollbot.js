@@ -15,7 +15,7 @@ bot.onConnect(function() {
 });
 
 bot.on('connect', function() {
-  this.join('675002_nfesquet@conf.hipchat.com');
+  this.join('');
 });
 
 bot.onInvite(function(room) {
@@ -24,7 +24,7 @@ bot.onInvite(function(room) {
 });
 
 bot.onMessage(/.*/, function(chan, from, message) {
-	if (message.substr(0, 5) === '!vote') {
+	if (message.substr(0, 5) === '!vote') { // Start a poll
     counterYes = 0;
     counterNo = 0;
 		message = message.substr(6);
@@ -32,11 +32,7 @@ bot.onMessage(/.*/, function(chan, from, message) {
 
 		poll[chan] = {}
 
-		// var options = message.split(', ');
-		// for (var i = 0; i < options.length; i++) {
-		// 	poll[chan][options[i]] = 0;
-		// }
-	} else if (message === '!results') {
+	} else if (message === '!results') { // End the current poll and display results
 		if (poll[chan] !== undefined) {
 
 			var keys =  Object.keys(poll[chan]);
@@ -53,30 +49,21 @@ bot.onMessage(/.*/, function(chan, from, message) {
 		} else {
 			bot.message(chan, 'No poll was active.');
 		}
-	}  else if (message === '!total') {
+	}  else if (message === '!total') { // Display current results
     bot.message(chan, 'Pour l\'instant ' + counterYes + ' personnes ont dit "oui"');
-  // } else if (message === '!add') {
-  //   message = message.substr(4).trim();
-  //   poll[chan][message] = true;
-  //   counter++;
-  //   bot.message(chan, message + ' a été ajouté au vote.');
-  // } else if (message === '!remove') {
-  //   message = message.substr(4).trim();
-  //   poll[chan][message] = false;
-  //   counter--;
-  }  else {
-		if (message === 'oui' || message === 'yes' || message === 'yep' || message === 'ouep' || message === 'moi') {
+  } else if (message === '!add') { // Add manually a contributor to the poll
+    // TO DO
+    bot.message(chan, message + ' a été ajouté au vote.');
+  } else if (message === '!remove') { // Remove manually a contributor (previously added) from the poll
+    // TO DO
+  }  else { // Vote
+		if (message === 'oui' || message === 'yes' || message === 'yep' || message === 'ouep' || message === 'moi') { // Vote yes
       poll[chan][from] = true;
       counterYes++;
 
-		} else if (message === 'non' || message === 'no' || message === 'nope') {
+		} else if (message === 'non' || message === 'no' || message === 'nope') { // Vote no
       poll[chan][from] = false;
       counterNo++;
 		}
-		// if (poll[chan] !== undefined) {
-		// 	if (poll[chan][message] !== undefined) {
-		// 		poll[chan][message]++;
-		// 	}
-		// }
 	}
 });
