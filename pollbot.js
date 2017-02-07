@@ -51,11 +51,12 @@ bot.onMessage(/.*/, function(chan, user, message) {
           bot.message(chan, "Vote déjà en cours ! Arrêtez le vote en cours avec la commande !results");
           return;
         }
+        // Initialize poll
         counterYes = 0;
         counterAll = 0;
-        bot.message(chan, user + ' a démarré un vote. Qui veut venir à la Via Roma ? Répondez par "oui" ou "non"');
+        poll[chan] = {};
 
-        poll[chan] = {}
+        bot.message(chan, user + ' a démarré un vote. Qui veut venir à la Via Roma ? Répondez par "oui" ou "non"');
         break;
 
       case "results": // End the current poll and display results
@@ -138,27 +139,27 @@ bot.onMessage(/.*/, function(chan, user, message) {
   } else if (isPollRunning(chan)) {
     if (message === 'oui' || message === 'yes' || message === 'yep' || message === 'ouep' || message === 'moi') { // "yes" vote
       var users = Object.keys(poll[chan]);
-      if (users.includes(user)) {
-        if (!poll[chan][user]) {
-          counterYes++;
+      if (users.includes(user)) { // if user already contributed
+        if (!poll[chan][user]) { // and if its vote was 'no'
+          counterYes++; // then update the 'yes' counter
           bot.message(chan, user + " a changé d'avis et est passé à \"oui\"");
         }
-      } else {
+      } else { // if user did not contribute, update lists
         counterYes++;
         counterAll++;
       }
-      poll[chan][user] = true;
+      poll[chan][user] = true; // set the user vote to 'yes'
     } else if (message === 'non' || message === 'no' || message === 'nope') { // "no" vote
       var users = Object.keys(poll[chan]);
-      if (users.includes(user)) {
-        if (poll[chan][user]) {
-          counterYes--;
+      if (users.includes(user)) { // if user already contributed
+        if (poll[chan][user]) { // and if its vote was 'yes'
+          counterYes--; // then update the 'yes' counter
           bot.message(chan, user + " a changé d'avis et est passé à \"non\"");
         }
-      } else {
+      } else { // if user did not contribute, update lists
         counterAll++;
       }
-      poll[chan][user] = false;
+      poll[chan][user] = false; // set the user vote to 'no'
     }
   }
 
