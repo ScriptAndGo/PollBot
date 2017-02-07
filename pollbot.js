@@ -3,10 +3,17 @@ var poll = {};
 var counterYes = 0;
 var counterAll = 0;
 var botname = 'pollbot';
+var fs = require('fs');
+
+var credentials = fs.readFileSync('credentials', 'utf-8');
+var credentialsArray = credentials.split("\r\n");
+var jabber_id = credentialsArray[0];
+var bot_password = credentialsArray[1];
+var room = credentialsArray = credentialsArray[2];
 
 var bot = new wobot.Bot({
-  jid: '',
-  password: '',
+  jid: jabber_id,
+  password: bot_password,
   name: 'PollBot'
 });
 
@@ -17,7 +24,7 @@ bot.onConnect(function() {
 });
 
 bot.on('connect', function() {
-  this.join('');
+  this.join(room);
 });
 
 bot.onInvite(function(room) {
@@ -53,12 +60,7 @@ bot.onMessage(/.*/, function(chan, user, message) {
 
       case "results": // End the current poll and display results
         if (isPollRunning(chan)) {
-          var keys =  Object.keys(poll[chan]);
-          var values = keys.join(', ');
-          // for (var i = 0; i < keys.length; i++) {
-          //   values += keys[i] + ', ';
-          // 	// bot.message(chan, keys[i] + ': ' + poll[chan][keys[i]]);
-          // }
+          var values = allYesResults(chan);
           bot.message(chan, "Vote terminé ! Liste : " + values);
           bot.message(chan, 'Soit un total de ' + counterYes + ' personnes. Merci à tous !');
 
@@ -70,8 +72,7 @@ bot.onMessage(/.*/, function(chan, user, message) {
 
       case "total": // Display current results
         if (isPollRunning(chan)) {
-          var keys =  Object.keys(poll[chan]);
-          var values = keys.join(', ');
+          var values = allYesResults(chan);
           bot.message(chan, 'Pour l\'instant ' + counterYes + ' personnes ont dit "oui" sur un total de ' + counterAll + ' personnes');
           bot.message(chan, 'Ces personnes sont ' + values);
         } else {
@@ -92,15 +93,10 @@ bot.onMessage(/.*/, function(chan, user, message) {
             } else {
               bot.message(chan, "Erreur : l'utilisateur avec le nom \'" + user + "\' a déjà été ajouté.");
             }
-            // TODO
-            // if (userToAdd not already logged)
-            // add userToAdd entry
-            // counterAll++
             //---- optional (because default is yes) -----
             // if (userToAdd's vote is yes)
             //then counterYes++
             //--------------------------------------------
-            // else message 'no user with this name'
           } else {
             bot.message(chan, "Valeur attendue en argument de cette commande.")
           }
@@ -123,17 +119,10 @@ bot.onMessage(/.*/, function(chan, user, message) {
               if (vote_value) {
                 counterYes--;
               }
+              bot.message(chan, user + ' a été supprimé du vote.');
             } else {
               bot.message(chan, "Aucun utilisateur avec le nom \'" + user + "\'");
             }
-            // TODO
-            // if (userToRemove already logged)
-            // remove userToRemove entry
-            // counterAll--
-            // if (userToRemove's vote was yes)
-            //then counterYes--
-            // else message 'no user with this name'
-            bot.message(chan, user + ' a été supprimé au vote.');
           } else {
             bot.message(chan, "Valeur attendue en argument de cette commande.")
           }
@@ -147,49 +136,44 @@ bot.onMessage(/.*/, function(chan, user, message) {
         break;
     }
   } else if (isPollRunning(chan)) {
-    bot.message(chan, "message = " + message);
     if (message === 'oui' || message === 'yes' || message === 'yep' || message === 'ouep' || message === 'moi') { // "yes" vote
       var users = Object.keys(poll[chan]);
-      if (users.includes(user) && !poll[chan][user]) { // "contains" ou "includes" ?
-        counterYes++;
-        bot.message(chan, user + " a changé d'avis et passé à \"oui\"");
+      if (users.includes(user)) {
+        if (!poll[chan][user]) {
+          counterYes++;
+          bot.message(chan, user + " a changé d'avis et est passé à \"oui\"");
+        }
       } else {
+        counterYes++;
         counterAll++;
       }
       poll[chan][user] = true;
-      // if (user already logged && its previous vote was 'no')
-      // then message saying user changed his mind
-      // and counterYes++
-      // else
-      // counterAll++
-
-
-      // counterYes++;
-      // counterAll++;
-
     } else if (message === 'non' || message === 'no' || message === 'nope') { // "no" vote
       var users = Object.keys(poll[chan]);
-      if (users.includes(user) {
-        if poll[chan][user]) {
+      if (users.includes(user)) {
+        if (poll[chan][user]) {
           counterYes--;
-          bot.message(chan, user + " a changé d'avis et passé à \"non\"");
+          bot.message(chan, user + " a changé d'avis et est passé à \"non\"");
         }
       } else {
         counterAll++;
       }
       poll[chan][user] = false;
-      // if (user already logged && its previous vote was 'yes')
-      // then message saying user changed his mind
-      // and counterYes--
-      // else
-      // counterAll++
-
-      // poll[chan][user] = false;
-      // counterAll++;
     }
   }
 
 });
+
+function allYesResults(chan) {
+  var values = Object.keys(poll[chan]);
+  var result = [];
+  for (var i = 0; i < values.length; i++) {
+    if (poll[chan][values[i]]) {
+      result.push(values[i]);
+    }
+  }
+  return result.join(', ');
+}
 
 function isPollRunning(chan) {
   return poll[chan] !== undefined;
@@ -197,9 +181,9 @@ function isPollRunning(chan) {
 
 function getHelpCommands() {
   return 'Commandes PollBot'
-  + '\n' + '!vote : Démarre le vote'
-  + '\n' + '!results : Termine le vote et affiche les résultats'
-  + '\n' + '!total : Affiche les résultats temporaires d\'un vote en cours'
-  + '\n' + '!add : Ajoute manuellement un utilisateur (pour ceux qui n\'ont pas HipChat)'
-  + '\n' + '!remove : Supprime manuellement un utilisateur préalablement ajouté';
+  + '\n!' + botname + ' vote : Démarre le vote'
+  + '\n!' + botname + ' results : Termine le vote et affiche les résultats'
+  + '\n!' + botname + ' total : Affiche les résultats temporaires d\'un vote en cours'
+  + '\n!' + botname + ' add : Ajoute manuellement un utilisateur (pour ceux qui n\'ont pas HipChat)'
+  + '\n!' + botname + ' remove : Supprime manuellement un utilisateur préalablement ajouté';
 }
