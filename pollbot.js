@@ -4,6 +4,8 @@ var counterYes = 0;
 var counterAll = 0;
 var botname = 'pollbot';
 var fs = require('fs');
+var yesValues = ['oui', 'yes', 'yep', 'ouep', 'moi'];
+var noValues = ['no'];
 
 var credentials = fs.readFileSync('credentials', 'utf-8');
 var credentialsArray = credentials.split("\r\n");
@@ -56,7 +58,7 @@ bot.onMessage(/.*/, function(chan, user, message) {
         counterAll = 0;
         poll[chan] = {};
 
-        bot.message(chan, user + ' a démarré un vote. Qui veut venir à la Via Roma ? Répondez par "oui" ou "non"');
+        bot.message(chan, user + ' a démarré un vote. Qui pour un Via Roma ce midi ? Répondez par "oui" ou "non"');
         break;
 
       case "results": // End the current poll and display results
@@ -137,7 +139,8 @@ bot.onMessage(/.*/, function(chan, user, message) {
         break;
     }
   } else if (isPollRunning(chan)) {
-    if (message === 'oui' || message === 'yes' || message === 'yep' || message === 'ouep' || message === 'moi') { // "yes" vote
+	console.log('[' + user + '] said \'' + message + '\'');
+    if (startsWith(message, yesValues)) { // "yes" vote
       var users = Object.keys(poll[chan]);
       if (users.includes(user)) { // if user already contributed
         if (!poll[chan][user]) { // and if its vote was 'no'
@@ -149,7 +152,8 @@ bot.onMessage(/.*/, function(chan, user, message) {
         counterAll++;
       }
       poll[chan][user] = true; // set the user vote to 'yes'
-    } else if (message === 'non' || message === 'no' || message === 'nope') { // "no" vote
+	  console.log('[' + user + '] added to \'yes\' list');
+    } else if (startsWith(message, noValues)) { // "no" vote
       var users = Object.keys(poll[chan]);
       if (users.includes(user)) { // if user already contributed
         if (poll[chan][user]) { // and if its vote was 'yes'
@@ -160,6 +164,7 @@ bot.onMessage(/.*/, function(chan, user, message) {
         counterAll++;
       }
       poll[chan][user] = false; // set the user vote to 'no'
+	  console.log('[' + user + '] added to \'no\' list');
     }
   }
 
@@ -174,6 +179,15 @@ function allYesResults(chan) {
     }
   }
   return result.join(', ');
+}
+
+function startsWith(message, values) {
+	for (var i = 0; i < values.length; i++) {
+		if (message.startsWith(values[i])) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function isPollRunning(chan) {
