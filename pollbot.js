@@ -86,7 +86,7 @@ bot.onMessage(/.*/, function(chan, user, message) {
       case "add": // Add manually a contributor to the poll
         if (isPollRunning(chan)) {
           if (arguments.length > 1) {
-            var user = arguments[1];
+            var user = arguments.slice(1).join(' ');
             var users = Object.keys(poll[chan]);
             if (!users.includes(user)) {
               poll[chan][user] = true;
@@ -111,7 +111,7 @@ bot.onMessage(/.*/, function(chan, user, message) {
       case "remove": // Remove manually a contributor (previously added) from the poll
         if (isPollRunning(chan)) {
           if (arguments.length > 1) {
-            var user = arguments[1];
+            var user = arguments.slice(1).join(' ');
             var users = Object.keys(poll[chan]);
             if (users.includes(user)) {
               var vote_value = poll[chan][user];
