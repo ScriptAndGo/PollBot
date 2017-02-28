@@ -135,6 +135,15 @@ bot.onMessage(/.*/, function(chan, user, message) {
           bot.message(chan, "Aucun vote en cours.");
         }
         break;
+	  case "go":
+	    if (isPollRunning(chan)) {
+	      var values = allYesResultsRaw(chan);
+		  var formattedvalues = values.map(function(x){
+			  return '@' + x.replace(' ', '');
+		  });
+		  bot.message(chan, 'Go ! ' + formattedvalues.join(' '));
+		}
+		break;
 
       default :
         bot.message(chan, "Commande inconnue.  Tapez \'!" + botname + " help\' pour afficher la liste des commandes.");
@@ -173,6 +182,10 @@ bot.onMessage(/.*/, function(chan, user, message) {
 });
 
 function allYesResults(chan) {
+  return allYesResultsRaw(chan).join(', ');
+}
+
+function allYesResultsRaw(chan) {
   var values = Object.keys(poll[chan]);
   var result = [];
   for (var i = 0; i < values.length; i++) {
@@ -180,16 +193,16 @@ function allYesResults(chan) {
       result.push(values[i]);
     }
   }
-  return result.join(', ');
+  return result;
 }
 
 function startsWith(message, values) {
-	for (var i = 0; i < values.length; i++) {
-		if (message.startsWith(values[i])) {
-			return true;
-		}
+  for (var i = 0; i < values.length; i++) {
+	if (message.startsWith(values[i])) {
+	  return true;
 	}
-	return false;
+  }
+  return false;
 }
 
 function isPollRunning(chan) {
