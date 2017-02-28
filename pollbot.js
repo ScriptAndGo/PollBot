@@ -37,7 +37,9 @@ bot.onInvite(function(room) {
 });
 
 bot.onMessage(/.*/, function(chan, user, message) {
-  if (message.substr(0, botname.length + 1) === ("!" + botname)) {
+  if (message.toLowerCase() === 'salut ' + botname) {
+    bot.message(chan, 'Salut ' + user + ' ! Un petit vote ?');
+  } else if (message.substr(0, botname.length + 1) === ("!" + botname)) {
     message = message.substr(botname.length + 2).trim();
     var arguments = message.split(" ");
     var command = arguments[0];
