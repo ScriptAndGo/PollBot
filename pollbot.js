@@ -215,5 +215,6 @@ function getHelpCommands() {
   + '\n!' + botname + ' results : Termine le vote et affiche les résultats'
   + '\n!' + botname + ' total : Affiche les résultats temporaires d\'un vote en cours'
   + '\n!' + botname + ' add : Ajoute manuellement un utilisateur (pour ceux qui n\'ont pas HipChat)'
-  + '\n!' + botname + ' remove : Supprime manuellement un utilisateur préalablement ajouté';
+  + '\n!' + botname + ' remove : Supprime manuellement un utilisateur préalablement ajouté'
+  + '\n!' + botname + ' go : Notifie tous les participants';
 }
