@@ -198,7 +198,7 @@ function allYesResultsRaw(chan) {
 
 function startsWith(message, values) {
   for (var i = 0; i < values.length; i++) {
-	if (message.startsWith(values[i])) {
+	if (message.toLowerCase().startsWith(values[i])) {
 	  return true;
 	}
   }
