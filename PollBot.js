@@ -1,220 +1,168 @@
-var wobot = require('wobot');
-var poll = {};
-var counterYes = 0;
-var counterAll = 0;
-var botname = 'pollbot';
+// -----------------------------------------------------------------------------
+// Module definition
+// -----------------------------------------------------------------------------
+module.exports.name = 'PollBot';
+module.exports.level = 'warn';
+// Global logging level
+//
+// Possible values: 'silent', 'error', 'warn', 'info', 'debug', 'trace'
+//
+// Recommended:
+//    'warn' for regular usage
+//    'info' for regular development
+//    'debug' when dealing with deep issues
+//    'trace' when dealing with VERY deep issues
+//
+// Note: it is preferable to set 'debug' log levels for each module individually
+//       rather than using the global switch, cf. 'loglevel setup' section.
+
+
+
+// -----------------------------------------------------------------------------
+// Dependencies
+// -----------------------------------------------------------------------------
 var fs = require('fs');
-var yesValues = ['oui', 'yes', 'yep', 'ouep', 'moi'];
-var noValues = ['no'];
 
-var credentials = fs.readFileSync('credentials', 'utf-8');
-var credentialsArray = credentials.split("\r\n");
-var jabber_id = credentialsArray[0];
-var bot_password = credentialsArray[1];
-var room = credentialsArray = credentialsArray[2];
+var wobot = require('wobot');
+var logger = require('loglevel').getLogger(module.exports.name);
+var loglevelMessagePrefix = require('loglevel-message-prefix');
 
+var logHelper = require('./utils/LogHelper');
+logHelper.setLevel(logger, module.exports.level);
+
+var pollPlugin = require('./plugins/PollPlugin');
+
+
+
+// -----------------------------------------------------------------------------
+// loglevel definition
+// -----------------------------------------------------------------------------
+// You can change the logging level of each module individually for easier debugging
+// logger.setLevel('debug');
+logger.setLevel(logHelper.level);
+loglevelMessagePrefix(logger, logHelper.logLevelMessagePrefix(module.exports.name));
+
+
+
+// -----------------------------------------------------------------------------
+// Initialization
+// -----------------------------------------------------------------------------
+// Get credentials
+var credentialsString = fs.readFileSync('credentials', 'utf-8');
+var [jid, password, defaultRoom] = credentialsString.split(/\s+/);
+logger.debug('jid:', jid);
+logger.debug('password: Nope! Chuck Testa');
+logger.debug('defaultRoom:', defaultRoom);
+
+// Instantiate bot
 var bot = new wobot.Bot({
-  jid: jabber_id,
-  password: bot_password,
-  name: 'PollBot'
+  jid: jid + '/pollbot',
+  password: password,
 });
 
+// Create user list
+bot.users = {};
+
+// Load plugins
+bot.loadPlugin(pollPlugin.name, pollPlugin);
+
+// Connect to HipChat server
 bot.connect();
 
-bot.onConnect(function() {
-  console.log('Connected to [' + bot.jid + '] with the name ' + bot.name);
+
+
+// -----------------------------------------------------------------------------
+// Event handlers
+// -----------------------------------------------------------------------------
+bot.onConnect(function onConnect() {
+  // Logging
+  logHelper.functionCall(logger, arguments.callee.name);
+  
+  // Connect, join default room, and initialize user list
+  logger.info('Connected to HipChat!\n  Server:', bot.mucHost, '\n  JID:', bot.jid, '\n  Name:', bot.name);
+  if (defaultRoom !== undefined) {
+      this.join(defaultRoom + '@' + bot.mucHost);
+      logger.info('Automatically joined default room:', defaultRoom);
+  }
+  this.refreshUsers();
 });
 
-bot.on('connect', function() {
+bot.onInvite(function onInvite(roomJid, senderJid, message) {
+  // Logging
+  logHelper.functionCall(logger, arguments.callee.name, {'roomJid': roomJid, 'senderJid': senderJid, 'message': message});
+  
+  // Join
   this.join(room);
+  logger.info('Joined room:', room);
 });
 
-bot.onInvite(function(room) {
-  console.log('Invited to ' + room);
-  bot.join(room);
-  console.log('Joined ' + room);
-  // bot.message(room, 'PollBot a rejoint le salon. Tapez \'!' + botname + ' help\' pour afficher la liste des commandes.');
+bot.onMessage(function onMessage(roomJid, senderName, message) {
+  // Logging
+  logHelper.functionCall(logger, arguments.callee.name, {'roomJid': roomJid, 'senderName': senderName, 'message': message});  
 });
 
-bot.onMessage(/.*/, function(chan, user, message) {
-  if (message.toLowerCase() === 'salut ' + botname) {
-    bot.message(chan, 'Salut ' + user + ' ! Un petit vote ?');
-  } else if (message.substr(0, botname.length + 1) === ("!" + botname)) {
-    message = message.substr(botname.length + 2).trim();
-    var arguments = message.split(" ");
-    var command = arguments[0];
-    switch(command)
-    {
-      case "help":
-        var help = getHelpCommands();
-        bot.message(chan, help);
-        break;
-
-      case "vote": // Start a poll
-        if (isPollRunning(chan)) {
-          bot.message(chan, "Vote déjà en cours ! Arrêtez le vote en cours avec la commande !results");
-          return;
-        }
-        // Initialize poll
-        counterYes = 0;
-        counterAll = 0;
-        poll[chan] = {};
-
-        bot.message(chan, user + ' a démarré un vote. Qui pour un Via Roma ce midi ? Répondez par "oui" ou "non"');
-        break;
-
-      case "results": // End the current poll and display results
-        if (isPollRunning(chan)) {
-          var values = allYesResults(chan);
-          bot.message(chan, "Vote terminé ! Liste : " + values);
-          bot.message(chan, 'Soit un total de ' + counterYes + ' personnes. Merci à tous !');
-
-          delete poll[chan];
-        } else {
-          bot.message(chan, 'Aucun vote en cours.');
-        }
-        break;
-
-      case "total": // Display current results
-        if (isPollRunning(chan)) {
-          var values = allYesResults(chan);
-          bot.message(chan, 'Pour l\'instant ' + counterYes + ' personnes ont dit "oui" sur un total de ' + counterAll + ' personnes');
-          bot.message(chan, 'Ces personnes sont ' + values);
-        } else {
-          bot.message(chan, "Aucun vote en cours.");
-        }
-        break;
-
-      case "add": // Add manually a contributor to the poll
-        if (isPollRunning(chan)) {
-          if (arguments.length > 1) {
-            var user = arguments.slice(1).join(' ');
-            var users = Object.keys(poll[chan]);
-            if (!users.includes(user)) {
-              poll[chan][user] = true;
-              counterAll++;
-              counterYes++;
-              bot.message(chan, user + ' a été ajouté au vote.');
-            } else {
-              bot.message(chan, "Erreur : l'utilisateur avec le nom \'" + user + "\' a déjà été ajouté.");
-            }
-            //---- optional (because default is yes) -----
-            // if (userToAdd's vote is yes)
-            //then counterYes++
-            //--------------------------------------------
-          } else {
-            bot.message(chan, "Valeur attendue en argument de cette commande.")
-          }
-        } else {
-          bot.message(chan, "Aucun vote en cours.");
-        }
-        break;
-
-      case "remove": // Remove manually a contributor (previously added) from the poll
-        if (isPollRunning(chan)) {
-          if (arguments.length > 1) {
-            var user = arguments.slice(1).join(' ');
-            var users = Object.keys(poll[chan]);
-            if (users.includes(user)) {
-              var vote_value = poll[chan][user];
-              var index = users.indexOf(user);
-              users.splice(index, 1);
-              delete poll[chan][user];
-              counterAll--;
-              if (vote_value) {
-                counterYes--;
-              }
-              bot.message(chan, user + ' a été supprimé du vote.');
-            } else {
-              bot.message(chan, "Aucun utilisateur avec le nom \'" + user + "\'");
-            }
-          } else {
-            bot.message(chan, "Valeur attendue en argument de cette commande.")
-          }
-        }  else {
-          bot.message(chan, "Aucun vote en cours.");
-        }
-        break;
-	  case "go":
-	    if (isPollRunning(chan)) {
-	      var values = allYesResultsRaw(chan);
-		  var formattedvalues = values.map(function(x){
-			  return '@' + x.replace(' ', '');
-		  });
-		  bot.message(chan, 'Go ! ' + formattedvalues.join(' '));
-		}
-		break;
-
-      default :
-        bot.message(chan, "Commande inconnue.  Tapez \'!" + botname + " help\' pour afficher la liste des commandes.");
-        break;
-    }
-  } else if (isPollRunning(chan)) {
-	console.log('[' + user + '] said \'' + message + '\'');
-    if (startsWith(message, yesValues)) { // "yes" vote
-      var users = Object.keys(poll[chan]);
-      if (users.includes(user)) { // if user already contributed
-        if (!poll[chan][user]) { // and if its vote was 'no'
-          counterYes++; // then update the 'yes' counter
-          bot.message(chan, user + " a changé d'avis et est passé à \"oui\"");
-        }
-      } else { // if user did not contribute, update lists
-        counterYes++;
-        counterAll++;
-      }
-      poll[chan][user] = true; // set the user vote to 'yes'
-	  console.log('[' + user + '] added to \'yes\' list');
-    } else if (startsWith(message, noValues)) { // "no" vote
-      var users = Object.keys(poll[chan]);
-      if (users.includes(user)) { // if user already contributed
-        if (poll[chan][user]) { // and if its vote was 'yes'
-          counterYes--; // then update the 'yes' counter
-          bot.message(chan, user + " a changé d'avis et est passé à \"non\"");
-        }
-      } else { // if user did not contribute, update lists
-        counterAll++;
-      }
-      poll[chan][user] = false; // set the user vote to 'no'
-	  console.log('[' + user + '] added to \'no\' list');
-    }
-  }
-
+bot.onPrivateMessage(function onPrivateMessage(senderJid, message) {
+  // Logging
+  logHelper.functionCall(logger, arguments.callee.name, {'senderJid': senderJid, 'message': message});
 });
 
-function allYesResults(chan) {
-  return allYesResultsRaw(chan).join(', ');
+bot.onError(function onError(error, message, stanza) {
+  // Logging
+  logHelper.functionCallDebug(logger, arguments.callee.name, {'error': error, 'message': message, 'stanza': stanza}, {'error': error, 'message': message}, 'error');
+});
+
+bot.onPing(function onPing() {
+  // Logging
+  logHelper.functionCall(logger, arguments.callee.name, {}, 'trace');
+});
+
+bot.onDisconnect(function onDisconnect() {
+  // Logging
+  logHelper.functionCall(logger, arguments.callee.name);
+});
+
+
+
+// -----------------------------------------------------------------------------
+// Utils
+// -----------------------------------------------------------------------------
+bot.getUserByName = function getUserByName(name) {
+  // Search for user in fetched list
+  // If not found, refresh list
+  var user = this.users[name];
+  if (user === undefined) {
+    this.refreshUsers();
+    user = this.users[name];
+  }
+  return user;
 }
 
-function allYesResultsRaw(chan) {
-  var values = Object.keys(poll[chan]);
-  var result = [];
-  for (var i = 0; i < values.length; i++) {
-    if (poll[chan][values[i]]) {
-      result.push(values[i]);
+bot.getUserByJid = function getUserByJid(jid) {
+  // Search for user in fetched list
+  // If not found, refresh list
+  for (var key in users) {
+    if (users[key].jid === jid) { var user = users[key]; }
+  }
+  if (user === undefined) {
+    this.refreshUsers();
+    for (var key in users) {
+      if (users[key].jid === jid) { user = users[key]; }
     }
   }
-  return result;
+  return user;
 }
 
-function startsWith(message, values) {
-  for (var i = 0; i < values.length; i++) {
-	if (message.toLowerCase().startsWith(values[i])) {
-	  return true;
-	}
-  }
-  return false;
-}
-
-function isPollRunning(chan) {
-  return poll[chan] !== undefined;
-}
-
-function getHelpCommands() {
-  return 'Commandes PollBot'
-  + '\n!' + botname + ' vote : Démarre le vote'
-  + '\n!' + botname + ' results : Termine le vote et affiche les résultats'
-  + '\n!' + botname + ' total : Affiche les résultats temporaires d\'un vote en cours'
-  + '\n!' + botname + ' add : Ajoute manuellement un utilisateur (pour ceux qui n\'ont pas HipChat)'
-  + '\n!' + botname + ' remove : Supprime manuellement un utilisateur préalablement ajouté'
-  + '\n!' + botname + ' go : Notifie tous les participants';
+bot.refreshUsers = function refreshUsers() {
+  // Refresh users list
+  logger.info('Refreshing user list');
+  users = {};
+  
+  this.getRoster(function(err, roster, stanza) {
+    roster.forEach(function(user) {
+      user.mention_name = '@' + user.mention_name;
+      users[user.name] = user;
+    });
+  });
+  
+  this.users = users;
 }
