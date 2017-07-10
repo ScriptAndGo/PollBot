@@ -136,7 +136,6 @@ function Poll(name, isRestaurantPoll) {
           
           var totalSlots = vehicles.reduce(function(total, { name, vehicle }) { return total + vehicle.nbSlots }, 0);
           var missingSlots = self.participants.length - totalSlots;
-          console.log(missingSlots);
           if (missingSlots > 0) {
             answer += sprintf('\nAttention : il manque %d places !', missingSlots);
           }
