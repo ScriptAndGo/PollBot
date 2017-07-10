@@ -146,9 +146,16 @@ function Poll(name, isRestaurantPoll) {
   }
   
   self.getPersonInCharge = function getPersonInCharge() {
-    var personInCharge = self.participants[Math.floor(Math.random() * self.participants.length)];
-    answer = sprintf("Aujourd'hui, %s sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.", personInCharge.mentionName);
+    // Safeguard
+    var participantsWithMentionNames = self.participants.filter(function (participant) { return participant.mentionName !== undefined; });
+    if (participantsWithMentionNames.length <= 0) {
+      return false;
+    }
+    
+    var personInCharge = self.participantsWithMentionNames[Math.floor(Math.random() * self.participants.length)];
+    var answer = sprintf("Aujourd'hui, %s sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.", personInCharge.mentionName);
     answer += '\nPour ses efforts, il aura le privilège de choisir sa place à table :)';
+    
     return answer;
   }
 }
@@ -329,8 +336,11 @@ var close = function close(roomJid, sender, params) {
   poll.close();
   this.message(roomJid, poll.getResults());
   
-  if (poll.isRestaurantPoll) {
-    this.message(roomJid, poll.getPersonInCharge());
+  if (poll.isRestaurantPoll && poll.participants.length >= 0) {
+    var answer = poll.getPersonInCharge();
+    if (answer !== false) {
+      this.message(roomJid, answer);
+    }
   }
 }
 
