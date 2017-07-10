@@ -1,6 +1,6 @@
 # PollBot
 
-A HipChat bot for simple question polls and restaurant polls, originally inspired from [NFesquet/PollBot](https://github.com/NFesquet/PollBot) and using [cjoudrey/wobot](https://github.com/cjoudrey/wobot/).
+A HipChat bot for simple question polls and restaurant polls, using [cjoudrey/wobot](https://github.com/cjoudrey/wobot/).
 
 ## Installation
 - Install [node.js](https://nodejs.org/en/download/): `choco install nodejs-lts`
