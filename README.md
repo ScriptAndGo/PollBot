@@ -4,8 +4,8 @@ A HipChat bot for simple question polls and restaurant polls, originally inspire
 
 ## Installation
 - Install [node.js](https://nodejs.org/en/download/): `choco install nodejs-lts`
-- Install dependencies: `npm install wobot loglevel loglevel-message-prefix sprintf-js`
 - Clone this repository
+- Install dependencies by running `npm install wobot loglevel loglevel-message-prefix sprintf-js` in the repository's folder
 - Create a bot account on your HipChat server, if there's not one already
 - Create a file named `credentials` next to `pollbot.js`, with the following information separated by whitespace of your choice (newline, spaces, etc.):
   - `jid`: Account's Jabber ID (obtained from HipChat account settings)
