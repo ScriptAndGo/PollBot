@@ -104,14 +104,14 @@ function Poll(name, isRestaurantPoll) {
   }
   
   self.getParticipantMentions = function getParticipantMentions() {
-    var participantsWithMentionNames = self.participants.filter(function (participant) { return participant.mentionName !== undefined; });    
+    var participantsWithMentionNames = self.participants.filter(function (participant) { return participant.mentionName !== undefined; });
     return participantsWithMentionNames.map(function(participant) {
       return participant.mentionName;
     });
   }
   
   self.getParticipantVehicles = function getParticipantVehicles() {
-    var participantsWithVehicles = self.participants.filter(function (participant) { return participant.vehicle !== undefined; });    
+    var participantsWithVehicles = self.participants.filter(function (participant) { return participant.vehicle !== undefined; });
     return participantsWithVehicles.map(function(participant) {
       return { 'name': participant.name, 'vehicle': participant.vehicle };
     });
@@ -362,7 +362,7 @@ var ping = function ping(roomJid, sender, params) {
   
   // Ping current list of participants
   var poll = polls[roomJid];
-  logger.info('Ping current list of participants to poll', '"' + poll.name + '"', 'in room', roomJid);  
+  logger.info('Ping current list of participants to poll', '"' + poll.name + '"', 'in room', roomJid);
   this.message(roomJid, 'Ping ' + poll.getParticipantMentions().join(' '));
 }
 
