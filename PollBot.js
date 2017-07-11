@@ -92,8 +92,8 @@ bot.onInvite(function onInvite(roomJid, senderJid, message) {
   logHelper.functionCall(logger, arguments.callee.name, {'roomJid': roomJid, 'senderJid': senderJid, 'message': message});
   
   // Join
-  this.join(room);
-  logger.info('Joined room:', room);
+  this.join(roomJid);
+  logger.info('Joined room:', roomJid);
 });
 
 bot.onMessage(function onMessage(roomJid, senderName, message) {
