@@ -22,6 +22,7 @@ var svc = new Service({
 var argv = parseArgs(process.argv.slice(2))
 var validArg = false;
 var reinstallFlag = false;
+var restartFlag = false;
 
 // Install
 if (argv['install'] === true) {
@@ -57,8 +58,8 @@ else if (argv['stop'] === true) {
 // Restart
 else if (argv['restart'] === true) {
   validArg = true;
-  start();
   stop();
+  restartFlag = true;
 }
 
 // Invalid arguments
@@ -105,6 +106,9 @@ svc.on('start', function() {
 
 svc.on('stop', function() {
   console.log('Service stopped!');
+  if (restartFlag) {
+    start();
+  }
 });
 
 svc.on('error', function() {
