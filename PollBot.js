@@ -152,6 +152,21 @@ bot.getUserByJid = function getUserByJid(jid) {
   return user;
 }
 
+bot.getUserByMentionName = function getUserByMentionName(mention_name) {
+  // Search for user in fetched list
+  // If not found, refresh list
+  for (var key in users) {
+    if (users[key].mention_name === mention_name) { var user = users[key]; }
+  }
+  if (user === undefined) {
+    this.refreshUsers();
+    for (var key in users) {
+      if (users[key].mention_name === mention_name) { user = users[key]; }
+    }
+  }
+  return user;
+}
+
 bot.refreshUsers = function refreshUsers() {
   // Refresh users list
   logger.info('Refreshing user list');
