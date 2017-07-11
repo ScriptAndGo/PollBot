@@ -126,9 +126,9 @@ bot.onDisconnect(function onDisconnect() {
 // -----------------------------------------------------------------------------
 // Utils
 // -----------------------------------------------------------------------------
-bot.getUser = function getUser( { name, jid, mention_name } = {}, refreshOnMiss = true) {
+bot.getUser = function getUser( { name, jid, mentionName } = {}, refreshOnMiss = true) {
   // Safeguard
-  if (name === undefined && jid === undefined && mention_name === undefined) {
+  if (name === undefined && jid === undefined && mentionName === undefined) {
     logger.error('Invalid parameters provided to getUser().');
     return;
   }
@@ -138,7 +138,7 @@ bot.getUser = function getUser( { name, jid, mention_name } = {}, refreshOnMiss 
   for (var key in this.users) {
     if (name !== undefined && key === name) { user = this.users[key]; break; }
     else if (jid !== undefined && this.users[key].jid === jid) { user = this.users[key]; break; }
-    else if (mention_name !== undefined && this.users[key].mention_name === mention_name) { user = this.users[key]; break; }
+    else if (mentionName !== undefined && this.users[key].mentionName === mentionName) { user = this.users[key]; break; }
   }
   
   // If not found, refresh cache
@@ -148,7 +148,7 @@ bot.getUser = function getUser( { name, jid, mention_name } = {}, refreshOnMiss 
     for (var key in this.users) {
       if (name !== undefined && key === name) { user = this.users[key]; break; }
       else if (jid !== undefined && this.users[key].jid === jid) { user = this.users[key]; break; }
-      else if (mention_name !== undefined && this.users[key].mention_name === mention_name) { user = this.users[key]; break; }
+      else if (mentionName !== undefined && this.users[key].mentionName === mentionName) { user = this.users[key]; break; }
     }
   }
   
@@ -162,7 +162,8 @@ bot.refreshUsers = function refreshUsers() {
   
   this.getRoster(function(err, roster, stanza) {
     roster.forEach(function(user) {
-      user.mention_name = '@' + user.mention_name;
+      user.mentionName = '@' + user.mention_name;
+      delete user.mention_name;
       users[user.name] = user;
     });
   });

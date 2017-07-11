@@ -83,7 +83,7 @@ function Poll(name, isRestaurantPoll) {
   
   self.removeParticipant = function removeParticipant(participantOrMentionName) {
     // Safeguard
-    var participant = self.getParticipant({ name: participantOrMentionName, mention_name: participantOrMentionName });
+    var participant = self.getParticipant({ name: participantOrMentionName, mentionName: participantOrMentionName });
     if (participant === undefined) {
       return false;
     }
@@ -93,14 +93,14 @@ function Poll(name, isRestaurantPoll) {
     return participant;
   }
   
-  self.getParticipant = function getParticipant( { name, mention_name } = {} ) {
+  self.getParticipant = function getParticipant( { name, mentionName } = {} ) {
     // Safeguard
-    if (name === undefined && mention_name === undefined) {
+    if (name === undefined && mentionName === undefined) {
       logger.error('Invalid parameters provided to getParticipant().');
       return;
     }
     
-    return self.participants.find(function (participant) { return participant.name === name || participant.mentionName === mention_name; });
+    return self.participants.find(function (participant) { return participant.name === name || participant.mentionName === mentionName; });
   }
   
   self.getParticipantNames = function getParticipantsName() {
@@ -409,19 +409,19 @@ var add = function add(roomJid, sender, params) {
   logger.info('Manually adding', participantOrMentionName, 'to participants in room', roomJid);
   
   // Try to match participantOrMentionName with an existing HipChat user.
-  var participant = this.getUser({ name: participantOrMentionName, mention_name: participantOrMentionName });
+  var participant = this.getUser({ name: participantOrMentionName, mentionName: participantOrMentionName });
   
   // If we couldn't get a match, add given name 'as is'
   if (participant === undefined) {
-    participant = { 'name': participantOrMentionName, 'mention_name': participantOrMentionName };
+    participant = { 'name': participantOrMentionName, 'mentionName': participantOrMentionName };
   }
   
-  if (poll.addParticipant(participant.name, participant.mention_name)) {
+  if (poll.addParticipant(participant.name, participant.mentionName)) {
     // If we got a match, user will be pinged via his mentionName
-    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participant.mention_name));
+    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participant.mentionName));
   }
   else {
-    this.message(roomJid, sprintf('%s participe déjà !', participant.mention_name));
+    this.message(roomJid, sprintf('%s participe déjà !', participant.mentionName));
   }
 }
 
@@ -530,7 +530,7 @@ var onMessage = function onMessage(roomJid, senderName, message) {
   var participant = this.getUser({ name: senderName });
   
   if (acceptConditions.test(message)) {
-    if (poll.addParticipant(participant.name, participant.mention_name)) {
+    if (poll.addParticipant(participant.name, participant.mentionName)) {
       logger.info('Adding', participant.name, 'to participants in room', roomJid);
       this.message(participant.jid, sprintf('Vous avez été ajouté à la liste des participants pour le sondage "%s" !', poll.name))
     }
