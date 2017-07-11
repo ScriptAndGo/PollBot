@@ -546,19 +546,23 @@ var onMessage = function onMessage(roomJid, senderName, message) {
     }
   }
   
-  // Update vehicle status if user was registered
-  var vehicle = undefined;
-  if (bikeConditions.test(message)) {
-    vehicle = new Vehicle(1);
-  }
-  if (carConditions.test(message)) {
-    var nbSlots = message.match(carConditions)[1];
-    vehicle = new Vehicle(nbSlots);
-  }
-  if (vehicle !== undefined) {
-    if (poll.updateParticipantVehicle(participant.name, vehicle)) {
-      logger.info('Updating', participant.name, "'s vehicle in room", roomJid);
-      this.message(participant.jid, sprintf('Votre véhicule (%d places) a bien été enregistré :)', vehicle.nbSlots))
+  // If poll is of type "Restaurant", check for vehicles
+  if (poll.isRestaurantPoll) {
+    var vehicle = undefined;
+    if (bikeConditions.test(message)) {
+      vehicle = new Vehicle(1);
+    }
+    if (carConditions.test(message)) {
+      var nbSlots = message.match(carConditions)[1];
+      vehicle = new Vehicle(nbSlots);
+    }
+    
+    // Update vehicle status if user was registered
+    if (vehicle !== undefined) {
+      if (poll.updateParticipantVehicle(participant.name, vehicle)) {
+        logger.info('Updating', participant.name, "'s vehicle in room", roomJid);
+        this.message(participant.jid, sprintf('Votre véhicule (%d places) a bien été enregistré :)', vehicle.nbSlots))
+      }
     }
   }
   
