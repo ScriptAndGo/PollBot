@@ -209,6 +209,12 @@ var dispatch = function dispatch(commandName, roomJid, sender, params, available
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'commandName': commandName, 'roomJid': roomJid, 'sender': sender, 'params': params});
   
+  // Sanitize params
+  if (params !== undefined) {
+    params = params.trim();
+    if (params.length === 0) { params = undefined };
+  }
+  
   // Dispatch command to its handler
   var command = availableCommands.find(function (command) { return command.name === commandName; })
   if (command !== undefined) {
