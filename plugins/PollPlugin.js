@@ -59,7 +59,7 @@ function Poll(name, isRestaurantPoll) {
   
   self.addParticipant = function addParticipant(participantName, mentionName) {
     // Safeguard
-    var participant = self.getParticipantByName(participantName);
+    var participant = self.getParticipant({name: participantName });
     if (participant !== undefined) {
       return false;
     }
@@ -71,7 +71,7 @@ function Poll(name, isRestaurantPoll) {
   
   self.updateParticipantVehicle = function updateParticipantVehicle(participantName, vehicle) {
     // Safeguard
-    var participant = self.getParticipantByName(participantName);
+    var participant = self.getParticipant({name: participantName });
     if (participant === undefined) {
       return false;
     }
@@ -81,9 +81,9 @@ function Poll(name, isRestaurantPoll) {
     return true;
   }
   
-  self.removeParticipant = function removeParticipant(participantName) {
+  self.removeParticipant = function removeParticipant(participantOrMentionName) {
     // Safeguard
-    var participant = self.getParticipantByName(participantName);
+    var participant = self.getParticipant({ name: participantOrMentionName, mention_name: participantOrMentionName });
     if (participant === undefined) {
       return false;
     }
@@ -93,8 +93,14 @@ function Poll(name, isRestaurantPoll) {
     return participant;
   }
   
-  self.getParticipantByName = function getParticipantByName(name) {
-    return self.participants.find(function (participant) { return participant.name === name; });
+  self.getParticipant = function getParticipant( { name, mention_name } = {} ) {
+    // Safeguard
+    if (name === undefined && mention_name === undefined) {
+      logger.error('Invalid parameters provided to getParticipant().');
+      return;
+    }
+    
+    return self.participants.find(function (participant) { return participant.name === name || participant.mentionName === mention_name; });
   }
   
   self.getParticipantNames = function getParticipantsName() {
@@ -444,16 +450,16 @@ var remove = function remove(roomJid, sender, params) {
   
   // Remove user from participants
   var poll = polls[roomJid];
-  var participantName = params;
-  logger.info('Manually removing', participantName, 'from participants in room', roomJid);
+  var participantOrMentionName = params;
+  logger.info('Manually removing', participantOrMentionName, 'from participants in room', roomJid);
   
-  participant = poll.removeParticipant(participantName);
+  participant = poll.removeParticipant(participantOrMentionName);
   if (participant !== false) {
     // If participant was a HipChat user, he will be pinged via his mentionName
     this.message(roomJid, sprintf('%s a été retiré de la liste des participants.', participant.mentionName));
   }
   else {
-    this.message(roomJid, sprintf('"%s" ne correspond à aucun participant existant.', participantName));
+    this.message(roomJid, sprintf('"%s" ne correspond à aucun participant existant.', participantOrMentionName));
   }
 }
 
