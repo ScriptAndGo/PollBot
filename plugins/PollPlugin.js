@@ -88,9 +88,9 @@ function Poll(name, isRestaurantPoll) {
       return false;
     }
     
-    // Remove participant from list
+    // Remove participant from list and return participant
     self.participants.splice(self.participants.indexOf(participant), 1);
-    return true;
+    return participant;
   }
   
   self.getParticipantByName = function getParticipantByName(name) {
@@ -396,17 +396,28 @@ var add = function add(roomJid, sender, params) {
   var participantName = params;
   logger.info('Manually adding', participantName, 'to participants in room', roomJid);
   
-  // Try to get user info, if possible
-  var participant = this.getUserByName(participantName)
+  // Try to match participantName with an existing HipChat user.
+  var nameMatch = this.getUserByName(participantName);
+  var mentionNameMatch = this.getUserByMentionName(participantName);
+  
+  if (nameMatch !== undefined) {
+    participant = nameMatch;
+  }
+  else if (mentionNameMatch !== undefined) {
+    participant = mentionNameMatch;
+  }
+  
+  // If we couldn't get a match, add given name 'as is'
   if (participant === undefined) {
-    participant = { 'name': participantName, 'mention_name': undefined }
+    participant = { 'name': participantName, 'mention_name': participantName };
   }
   
   if (poll.addParticipant(participant.name, participant.mention_name)) {
-    this.message(roomJid, sprintf('"%s" a été ajouté à la liste des participants.', participantName));
+    // If we got a match, user will be pinged via his mentionName
+    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participant.mentionName));
   }
   else {
-    this.message(roomJid, sprintf('"%s" participe déjà !', participantName));
+    this.message(roomJid, sprintf('%s participe déjà !', participant.mentionName));
   }
 }
 
@@ -430,8 +441,10 @@ var remove = function remove(roomJid, sender, params) {
   var participantName = params;
   logger.info('Manually removing', participantName, 'from participants in room', roomJid);
   
-  if (poll.removeParticipant(participantName)) {
-    this.message(roomJid, sprintf('"%s" a été retiré de la liste des participants.', participantName));
+  participant = poll.removeParticipant(participantName);
+  if (participant !== false) {
+    // If participant was a HipChat user, he will be pinged via his mentionName
+    this.message(roomJid, sprintf('%s a été retiré de la liste des participants.', participant.mentionName));
   }
   else {
     this.message(roomJid, sprintf('"%s" ne correspond à aucun participant existant.', participantName));
