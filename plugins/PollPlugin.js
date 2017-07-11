@@ -154,7 +154,7 @@ function Poll(name, isRestaurantPoll) {
     
     var personInCharge = self.participantsWithMentionNames[Math.floor(Math.random() * self.participants.length)];
     var answer = sprintf("Aujourd'hui, %s sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.", personInCharge.mentionName);
-    answer += '\nPour ses efforts, il aura le privilège de choisir sa place à table :)';
+    answer += '\nPour ses efforts, le G.O. aura le privilège de choisir sa place à table :)';
     
     return answer;
   }
