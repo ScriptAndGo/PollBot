@@ -405,23 +405,15 @@ var add = function add(roomJid, sender, params) {
   
   // Add user to participants
   var poll = polls[roomJid];
-  var participantName = params;
-  logger.info('Manually adding', participantName, 'to participants in room', roomJid);
+  var participantOrMentionName = params;
+  logger.info('Manually adding', participantOrMentionName, 'to participants in room', roomJid);
   
-  // Try to match participantName with an existing HipChat user.
-  var nameMatch = this.getUserByName(participantName);
-  var mentionNameMatch = this.getUserByMentionName(participantName);
-  
-  if (nameMatch !== undefined) {
-    participant = nameMatch;
-  }
-  else if (mentionNameMatch !== undefined) {
-    participant = mentionNameMatch;
-  }
+  // Try to match participantOrMentionName with an existing HipChat user.
+  var participant = this.getUser({ name: participantOrMentionName, mention_name: participantOrMentionName });
   
   // If we couldn't get a match, add given name 'as is'
   if (participant === undefined) {
-    participant = { 'name': participantName, 'mention_name': participantName };
+    participant = { 'name': participantOrMentionName, 'mention_name': participantOrMentionName };
   }
   
   if (poll.addParticipant(participant.name, participant.mention_name)) {
@@ -512,7 +504,7 @@ var onCommandMessage = function onCommandMessage(roomJid, senderName, message, m
 
   // Dispatch command to its handler
   var [command, params] = [matches[1], matches[2]];
-  dispatch.call(this, command, roomJid, this.getUserByName(senderName), params, publicCommands);
+  dispatch.call(this, command, roomJid, this.getUser({ name: senderName }), params, publicCommands);
 };
 
 var onPrivateCommandMessage = function onPrivateCommandMessage(senderJid, message, matches) {
@@ -521,7 +513,7 @@ var onPrivateCommandMessage = function onPrivateCommandMessage(senderJid, messag
   
   // Dispatch command to its handler
   var [command, params] = [matches[1], matches[2]];
-  dispatch.call(this, command, senderJid, this.getUserByJid(senderJid), params, privateCommands);
+  dispatch.call(this, command, senderJid, this.getUser({ name: senderJid }), params, privateCommands);
 };
 
 var onMessage = function onMessage(roomJid, senderName, message) {
@@ -535,7 +527,7 @@ var onMessage = function onMessage(roomJid, senderName, message) {
   
   // Register a new participant
   var poll = polls[roomJid];
-  var participant = this.getUserByName(senderName);
+  var participant = this.getUser({ name: senderName });
   
   if (acceptConditions.test(message)) {
     if (poll.addParticipant(participant.name, participant.mention_name)) {

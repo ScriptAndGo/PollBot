@@ -126,44 +126,32 @@ bot.onDisconnect(function onDisconnect() {
 // -----------------------------------------------------------------------------
 // Utils
 // -----------------------------------------------------------------------------
-bot.getUserByName = function getUserByName(name) {
-  // Search for user in fetched list
-  // If not found, refresh list
-  var user = this.users[name];
-  if (user === undefined) {
-    this.refreshUsers();
-    user = this.users[name];
+bot.getUser = function getUser( { name, jid, mention_name } = {}, refreshOnMiss = true) {
+  // Safeguard
+  if (name === undefined && jid === undefined && mention_name === undefined) {
+    logger.error('Invalid parameters provided to getUser().');
+    return;
   }
-  return user;
-}
-
-bot.getUserByJid = function getUserByJid(jid) {
-  // Search for user in fetched list
-  // If not found, refresh list
-  for (var key in users) {
-    if (users[key].jid === jid) { var user = users[key]; }
+  
+  // Search for user in cached list
+  var user;
+  for (var key in this.users) {
+    if (name !== undefined && key === name) { user = this.users[key]; break; }
+    else if (jid !== undefined && this.users[key].jid === jid) { user = this.users[key]; break; }
+    else if (mention_name !== undefined && this.users[key].mention_name === mention_name) { user = this.users[key]; break; }
   }
-  if (user === undefined) {
+  
+  // If not found, refresh cache
+  if (user === undefined && refreshOnMiss) {
     this.refreshUsers();
-    for (var key in users) {
-      if (users[key].jid === jid) { user = users[key]; }
+    
+    for (var key in this.users) {
+      if (name !== undefined && key === name) { user = this.users[key]; break; }
+      else if (jid !== undefined && this.users[key].jid === jid) { user = this.users[key]; break; }
+      else if (mention_name !== undefined && this.users[key].mention_name === mention_name) { user = this.users[key]; break; }
     }
   }
-  return user;
-}
-
-bot.getUserByMentionName = function getUserByMentionName(mention_name) {
-  // Search for user in fetched list
-  // If not found, refresh list
-  for (var key in users) {
-    if (users[key].mention_name === mention_name) { var user = users[key]; }
-  }
-  if (user === undefined) {
-    this.refreshUsers();
-    for (var key in users) {
-      if (users[key].mention_name === mention_name) { user = users[key]; }
-    }
-  }
+  
   return user;
 }
 
