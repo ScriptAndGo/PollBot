@@ -418,10 +418,10 @@ var add = function add(roomJid, sender, params) {
   
   if (poll.addParticipant(participant.name, participant.mention_name)) {
     // If we got a match, user will be pinged via his mentionName
-    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participant.mentionName));
+    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participant.mention_name));
   }
   else {
-    this.message(roomJid, sprintf('%s participe déjà !', participant.mentionName));
+    this.message(roomJid, sprintf('%s participe déjà !', participant.mention_name));
   }
 }
 
