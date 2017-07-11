@@ -25,38 +25,38 @@ var reinstallFlag = false;
 var restartFlag = false;
 
 // Install
-if (argv['install'] === true) {
+if (argv.install) {
   validArg = true;
   install();
 }
 
 // Uninstall
-else if (argv['uninstall'] === true) {
+else if (argv.uninstall) {
   validArg = true;
   uninstall();
 }
 
 // Update / reinstall
-else if (argv['update'] === true || argv['reinstall'] === true) {
+else if (argv.update || argv.reinstall) {
   validArg = true;
   reinstallFlag = true;
   uninstall();
 }
 
 // Start
-else if (argv['start'] === true) {
+else if (argv.start) {
   validArg = true;
   start();
 }
 
 // Stop
-else if (argv['stop'] === true) {
+else if (argv.stop) {
   validArg = true;
   stop();
 }
 
 // Restart
-else if (argv['restart'] === true) {
+else if (argv.restart) {
   validArg = true;
   stop();
   restartFlag = true;
