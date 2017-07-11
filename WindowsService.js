@@ -36,8 +36,8 @@ else if (argv.uninstall) {
   uninstall();
 }
 
-// Update / reinstall
-else if (argv.update || argv.reinstall) {
+// Reinstall / update
+else if (argv.reinstall || argv.update) {
   validArg = true;
   reinstallFlag = true;
   uninstall();
@@ -68,6 +68,8 @@ else if (validArg === false) {
 Usage:
   node WindowsServce.js --install
   node WindowsServce.js --uninstall
+  node WindowsServce.js --reinstall
+  node WindowsServce.js --update
   
   node WindowsServce.js --start
   node WindowsServce.js --stop
