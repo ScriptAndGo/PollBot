@@ -528,9 +528,7 @@ var onMessage = function onMessage(roomJid, senderName, message) {
   if (acceptConditions.test(message)) {
     if (poll.addParticipant(participant.name, participant.mention_name)) {
       logger.info('Adding', participant.name, 'to participants in room', roomJid);
-    }
-    else {
-      logger.info(participant.name, 'was already registered in room', roomJid);
+      this.message(participant.jid, sprintf('Vous avez été ajouté à la liste des participants pour le sondage "%s" !', poll.name))
     }
   }
   
@@ -538,7 +536,7 @@ var onMessage = function onMessage(roomJid, senderName, message) {
   else if (cancelConditions.test(message)) {
     if (poll.removeParticipant(participant.name)) {
       logger.info('Cancelling', participant.name, 'participation in room', roomJid);
-      this.message(roomJid, sprintf('%s a été retiré de la liste des participants.', participant.name));
+      this.message(participant.jid, sprintf('Vous avez été retiré de la liste des participants pour le sondage "%s" !', poll.name))
     }
   }
   
@@ -554,6 +552,7 @@ var onMessage = function onMessage(roomJid, senderName, message) {
   if (vehicle !== undefined) {
     if (poll.updateParticipantVehicle(participant.name, vehicle)) {
       logger.info('Updating', participant.name, "'s vehicle in room", roomJid);
+      this.message(participant.jid, sprintf('Votre véhicule (%d places) a bien été enregistré :)', vehicle.nbSlots))
     }
   }
   
