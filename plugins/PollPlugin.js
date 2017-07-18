@@ -324,7 +324,7 @@ function startPoll(roomJid, name, isRestaurantPoll) {
   polls[roomJid] = poll;
   logger.info('Starting a new poll', '"' + poll.name + '"', 'in room', roomJid);
   var answer = sprintf('Nouveau sondage : "%s"', name);
-  var vehiclePrompt = ' Si vous avez une voiture précisez "voiture X places", et si vous allez en vélo précisez "vélo."';
+  var vehiclePrompt = ' Si vous avez une voiture précisez "voiture X places", et si vous allez en vélo précisez "vélo".';
   answer += sprintf(`\nRépondez par "oui" pour participer.%s Si vous changez d'avis, utilisez "annulation" pour vous retirer du sondage.`, (isRestaurantPoll) ? vehiclePrompt : '' );
   this.message(roomJid, answer);
 }
