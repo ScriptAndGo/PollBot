@@ -27,3 +27,4 @@ Type `!poll help` in private message or in any room with the bot to get a list o
 
 ## Future
 * Add a schedule manager to allow for automatic poll start/close.
+* Add an automatic reconnection protocol for when connection to the HipChat server is lost momentarily (e.g. network connection drop).
