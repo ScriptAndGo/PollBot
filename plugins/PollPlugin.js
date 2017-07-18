@@ -100,7 +100,7 @@ function Poll(name, isRestaurantPoll) {
       return;
     }
     
-    return self.participants.find(function (participant) { return participant.name === name || participant.mentionName === mentionName; });
+    return self.participants.find(function (participant) { return (name !== undefined && participant.name === name) || (mentionName !== undefined && participant.mentionName === mentionName); });
   }
   
   self.getParticipantNames = function getParticipantsName() {
