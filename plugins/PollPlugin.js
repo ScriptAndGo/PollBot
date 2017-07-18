@@ -413,15 +413,18 @@ var add = function add(roomJid, sender, params) {
   
   // If we couldn't get a match, add given name 'as is'
   if (participant === undefined) {
-    participant = { 'name': participantOrMentionName, 'mentionName': participantOrMentionName };
+    participant = { 'name': participantOrMentionName };
   }
+  
+  // Helper variable for pretty printing
+  var participantPrintedName = participant.mentionName !== undefined ? participant.mentionName : participant.name;
   
   if (poll.addParticipant(participant.name, participant.mentionName)) {
     // If we got a match, user will be pinged via his mentionName
-    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participant.mentionName));
+    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participantPrintedName));
   }
   else {
-    this.message(roomJid, sprintf('%s participe déjà !', participant.mentionName));
+    this.message(roomJid, sprintf('%s participe déjà !', participantPrintedName));
   }
 }
 
@@ -448,7 +451,7 @@ var remove = function remove(roomJid, sender, params) {
   participant = poll.removeParticipant(participantOrMentionName);
   if (participant !== false) {
     // If participant was a HipChat user, he will be pinged via his mentionName
-    this.message(roomJid, sprintf('%s a été retiré de la liste des participants.', participant.mentionName));
+    this.message(roomJid, sprintf('%s a été retiré de la liste des participants.', participant.mentionName !== undefined ? participant.mentionName : participant.name));
   }
   else {
     this.message(roomJid, sprintf('"%s" ne correspond à aucun participant existant.', participantOrMentionName));
