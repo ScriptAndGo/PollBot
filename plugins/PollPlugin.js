@@ -152,15 +152,17 @@ function Poll(name, isRestaurantPoll) {
   }
   
   self.getPersonInCharge = function getPersonInCharge() {
-    // Safeguard
+    var answer = '';
     var participantsWithMentionNames = self.participants.filter(function (participant) { return participant.mentionName !== undefined; });
-    if (participantsWithMentionNames.length <= 0) {
-      return false;
-    }
     
-    var personInCharge = participantsWithMentionNames[Math.floor(Math.random() * self.participants.length)];
-    var answer = sprintf("Aujourd'hui, %s sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.", personInCharge.mentionName);
-    answer += '\nPour ses efforts, le G.O. aura le privilège de choisir sa place à table :)';
+    if (participantsWithMentionNames.length <= 0) {
+      answer += "Il semble qu'aucun des participants ne soit un utilisateur HipChat (ajouts manuels...?). Il faudra donc désigner un G.O. par vous-mêmes...!";
+    }
+    else {
+      var personInCharge = participantsWithMentionNames[Math.floor(Math.random() * self.participants.length)];
+      answer += sprintf("Aujourd'hui, %s sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.", personInCharge.mentionName);
+      answer += '\nPour ses efforts, le G.O. aura le privilège de choisir sa place à table :)';
+    }
     
     return answer;
   }
@@ -349,10 +351,7 @@ var close = function close(roomJid, sender, params) {
   this.message(roomJid, poll.getResults());
   
   if (poll.isRestaurantPoll && poll.participants.length >= 0) {
-    var answer = poll.getPersonInCharge();
-    if (answer !== false) {
-      this.message(roomJid, answer);
-    }
+    this.message(roomJid, poll.getPersonInCharge());
   }
 }
 
