@@ -143,7 +143,7 @@ function Poll(name, isRestaurantPoll) {
           var totalSlots = vehicles.reduce(function(total, { name, vehicle }) { return total + vehicle.nbSlots }, 0);
           var missingSlots = self.participants.length - totalSlots;
           if (missingSlots > 0) {
-            answer += sprintf('\nAttention : il manque %d places !', missingSlots);
+            answer += sprintf('\nAttention : il manque %d place%s !', missingSlots, (missingSlots > 1) ? 's' : '');
           }
         }
       }
@@ -156,7 +156,7 @@ function Poll(name, isRestaurantPoll) {
     var participantsWithMentionNames = self.participants.filter(function (participant) { return participant.mentionName !== undefined; });
     
     if (participantsWithMentionNames.length <= 0) {
-      answer += "Il semble qu'aucun des participants ne soit un utilisateur HipChat (ajouts manuels...?). Il faudra donc désigner un G.O. par vous-mêmes...!";
+      answer += "Il semble qu'aucun des participants ne soit un utilisateur HipChat (ajouts manuels...?). Il faudra donc désigner un G.O. vous-mêmes...!";
     }
     else {
       var personInCharge = participantsWithMentionNames[Math.floor(Math.random() * self.participants.length)];
