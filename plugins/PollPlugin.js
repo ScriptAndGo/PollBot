@@ -405,7 +405,7 @@ const add = function(roomJid, sender, params) {
   logger.info('Manually adding', participantOrMentionName, 'to participants in room', roomJid);
   
   // Try to match participantOrMentionName with an existing HipChat user.
-  let participant = this.getUser({ name: participantOrMentionName, mentionName: participantOrMentionName });
+  let participant = this.getUser({ name: participantOrMentionName, mentionName: participantOrMentionName }, false);
   
   // If we couldn't get a match, add given name 'as is'
   if (participant === undefined) {
