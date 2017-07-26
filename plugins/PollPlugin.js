@@ -576,14 +576,3 @@ function hasPoll(roomJid) {
 function hasPollRunning(roomJid) {
   return hasPoll(roomJid) && polls[roomJid].isOpen;
 }
-
-function startsWith(message, conditions) {
-  let match = false;
-  message = message.toLowerCase();
-  
-  conditions.forEach(condition => {
-    if (message.startsWith(condition)) { match = true; }
-  });
-  
-  return match;
-}
