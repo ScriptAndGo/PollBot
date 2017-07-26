@@ -9,12 +9,12 @@ module.exports.name = 'LogHelper';
 // loglevel definition
 // -----------------------------------------------------------------------------
 // Possible values: 'silent', 'error', 'warn', 'info', 'debug', 'trace'
-module.exports.setLevel = function setLevel(logger, level) {
+module.exports.setLevel = function(logger, level) {
   level = loglevelToNumber(logger, level);
   module.exports.level = level;
 }
 
-module.exports.logLevelMessagePrefix = function logLevelMessagePrefix(name) {
+module.exports.logLevelMessagePrefix = function(name) {
   return {  
     staticPrefixes: [name],
     prefixFormat: '[%p]',
@@ -31,7 +31,7 @@ module.exports.logLevelMessagePrefix = function logLevelMessagePrefix(name) {
 // -----------------------------------------------------------------------------
 // Utils
 // -----------------------------------------------------------------------------
-function loglevelToNumber(logger, level) {
+const loglevelToNumber = function loglevelToNumber(logger, level) {
   if (typeof level === 'string' && logger.levels[level.toUpperCase()] !== undefined) {
     level = logger.levels[level.toUpperCase()];
   }
@@ -44,39 +44,40 @@ function loglevelToNumber(logger, level) {
   }
 }
 
-module.exports.log = function log(logger, level) {
+module.exports.log = function(logger, level) {
   level = loglevelToNumber(logger, level);
   
+  let func;
   switch (level) {
     case logger.levels.TRACE:
-      var func = logger.trace;
+      func = logger.trace;
       break;
     case logger.levels.DEBUG:
-      var func = logger.debug;
+      func = logger.debug;
       break;
     case logger.levels.INFO:
-      var func = logger.info;
+      func = logger.info;
       break;
     case logger.levels.WARN:
-      var func = logger.warn;
+      func = logger.warn;
       break;
     case logger.levels.ERROR:
-      var func = logger.error;
+      func = logger.error;
       break;
   }
   
   return func;
 }
 
-module.exports.functionCall = function functionCall(logger, functionName, functionArgs = {}, level = logger.levels.DEBUG) {
+module.exports.functionCall = function(logger, functionName, functionArgs = {}, level = logger.levels.DEBUG) {
   level = loglevelToNumber(logger, level);
   
   args = []
   if (functionArgs !== undefined) {
-    Object.keys(functionArgs).forEach(function(key) {
+    for (let key in functionArgs) {
       args.push('\n  ' + key + ':');
       args.push(functionArgs[key]);
-    });
+    }
   }
   
   if (logger.getLevel() <= level) {
@@ -84,7 +85,7 @@ module.exports.functionCall = function functionCall(logger, functionName, functi
   }
 }
 
-module.exports.functionCallDebug = function functionCallDebug(logger, functionName, debugFunctionArgs, defaultFunctionArgs = {}, level = logger.levels.DEBUG) {
+module.exports.functionCallDebug = function(logger, functionName, debugFunctionArgs, defaultFunctionArgs = {}, level = logger.levels.DEBUG) {
   level = loglevelToNumber(logger, level);
   module.exports.functionCall(logger, functionName, (level <= logger.levels.DEBUG) ? debugFunctionArgs : defaultFunctionArgs, level);
 }

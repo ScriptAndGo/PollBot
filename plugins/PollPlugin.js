@@ -8,11 +8,11 @@ module.exports.name = 'PollPlugin';
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
-var sprintf = require("sprintf-js").sprintf;
-var logger = require('loglevel').getLogger(module.exports.name);
-var loglevelMessagePrefix = require('loglevel-message-prefix');
+const sprintf = require("sprintf-js").sprintf;
+const logger = require('loglevel').getLogger(module.exports.name);
+const loglevelMessagePrefix = require('loglevel-message-prefix');
 
-var logHelper = require('../utils/LogHelper');
+const logHelper = require('../utils/LogHelper');
 
 
 // -----------------------------------------------------------------------------
@@ -28,10 +28,10 @@ loglevelMessagePrefix(logger, logHelper.logLevelMessagePrefix(module.exports.nam
 // -----------------------------------------------------------------------------
 // Wobot plugin definition
 // -----------------------------------------------------------------------------
-var baseCommand = '!poll'
-var condition = new RegExp('^' + baseCommand + '(?=$| )(?: (\\w+))?(?: (.*))?$', 'i');
+const baseCommand = '!poll'
+const condition = new RegExp('^' + baseCommand + '(?=$| )(?: (\\w+))?(?: (.*))?$', 'i');
 
-module.exports.load = function onLoadPlugin(bot) {
+module.exports.load = function load(bot) {
   // Logging
   logHelper.functionCall(logger, arguments.callee.name);
   
@@ -46,32 +46,33 @@ module.exports.load = function onLoadPlugin(bot) {
 // -----------------------------------------------------------------------------
 // Poll class
 // -----------------------------------------------------------------------------
-function Poll(name, isRestaurantPoll) {
-  var self = this;
-  self.name = name;
-  self.isRestaurantPoll = isRestaurantPoll;
-  self.isOpen = true;
-  self.participants = [];
-  
-  self.close = function close() {
-    self.isOpen = false;
+class Poll {
+  constructor(name, isRestaurantPoll) {
+    this.name = name;
+    this.isRestaurantPoll = isRestaurantPoll;
+    this.isOpen = true;
+    this.participants = [];
   }
   
-  self.addParticipant = function addParticipant(participantName, mentionName) {
+  close() {
+    this.isOpen = false;
+  }
+  
+  addParticipant(participantName, mentionName) {
     // Safeguard
-    var participant = self.getParticipant({name: participantName });
+    let participant = this.getParticipant({name: participantName });
     if (participant !== undefined) {
       return false;
     }
     
     // Add participant to list
-    self.participants.push(new Participant(participantName, mentionName));
+    this.participants.push(new Participant(participantName, mentionName));
     return true;
   }
   
-  self.updateParticipantVehicle = function updateParticipantVehicle(participantName, vehicle) {
+  updateParticipantVehicle(participantName, vehicle) {
     // Safeguard
-    var participant = self.getParticipant({name: participantName });
+    let participant = this.getParticipant({name: participantName });
     if (participant === undefined) {
       return false;
     }
@@ -81,67 +82,61 @@ function Poll(name, isRestaurantPoll) {
     return true;
   }
   
-  self.removeParticipant = function removeParticipant(participantOrMentionName) {
+  removeParticipant(participantOrMentionName) {
     // Safeguard
-    var participant = self.getParticipant({ name: participantOrMentionName, mentionName: participantOrMentionName });
+    let participant = this.getParticipant({ name: participantOrMentionName, mentionName: participantOrMentionName });
     if (participant === undefined) {
       return false;
     }
     
     // Remove participant from list and return participant
-    self.participants.splice(self.participants.indexOf(participant), 1);
+    this.participants.splice(this.participants.indexOf(participant), 1);
     return participant;
   }
   
-  self.getParticipant = function getParticipant( { name, mentionName } = {} ) {
+  getParticipant( { name, mentionName } = {} ) {
     // Safeguard
     if (name === undefined && mentionName === undefined) {
       logger.error('Invalid parameters provided to getParticipant().');
       return;
     }
     
-    return self.participants.find(function (participant) { return (name !== undefined && participant.name === name) || (mentionName !== undefined && participant.mentionName === mentionName); });
+    return this.participants.find(participant => (name !== undefined && participant.name === name) || (mentionName !== undefined && participant.mentionName === mentionName));
   }
   
-  self.getParticipantNames = function getParticipantsName() {
-    return self.participants.map(function(participant) {
-      return participant.name;
-    });
+  getParticipantNames() {
+    return this.participants.map(participant => participant.name);
   }
   
-  self.getParticipantMentions = function getParticipantMentions() {
-    var participantsWithMentionNames = self.participants.filter(function (participant) { return participant.mentionName !== undefined; });
-    return participantsWithMentionNames.map(function(participant) {
-      return participant.mentionName;
-    });
+  getParticipantMentions() {
+    let participantsWithMentionNames = this.participants.filter(participant => participant.mentionName !== undefined);
+    return participantsWithMentionNames.map(participant => participant.mentionName);
   }
   
-  self.getParticipantVehicles = function getParticipantVehicles() {
-    var participantsWithVehicles = self.participants.filter(function (participant) { return participant.vehicle !== undefined; });
-    return participantsWithVehicles.map(function(participant) {
-      return { 'name': participant.name, 'vehicle': participant.vehicle };
-    });
+  getParticipantVehicles() {
+    let participantsWithVehicles = this.participants.filter(participant => participant.vehicle !== undefined);
+    return participantsWithVehicles.map(participant => ({ 'name': participant.name, 'vehicle': participant.vehicle }));
   }
   
-  self.getResults = function getResults() {
-    var answer = sprintf('Résultats %s pour le sondage "%s" :', (self.isOpen) ? "temporaires" : "finaux", self.name);
-    if (self.participants.length <= 0) {
+  getResults() {
+    let answer = sprintf('Résultats %s pour le sondage "%s" :', (this.isOpen) ? "temporaires" : "finaux", this.name);
+    if (this.participants.length <= 0) {
       answer += "\nÀ première vue, personne... :/";
     }
     else {
-      answer += sprintf('\n%d participant%s : %s', self.participants.length, (self.participants.length > 1) ? 's' : '', self.getParticipantNames().join(', '));
+      answer += sprintf('\n%d participant%s : %s', this.participants.length, (this.participants.length > 1) ? 's' : '', this.getParticipantNames().join(', '));
       
-      if (self.isRestaurantPoll) {
-        var vehicles = self.getParticipantVehicles();
+      if (this.isRestaurantPoll) {
+        let vehicles = this.getParticipantVehicles();
         if (vehicles.length <= 0) {
           answer += "\nAucun véhicule... il va falloir marcher !";
         }
         else {
-          var vehiclesList = vehicles.map(function({ name, vehicle }) { return sprintf('%s (%s)', name, vehicle.nbSlots) }).join(', ');
+          let vehiclesList = vehicles.map(({ name, vehicle }) => sprintf('%s (%s)', name, vehicle.nbSlots)).join(', ');
           answer += sprintf('\n%d véhicule%s : %s', vehicles.length, (vehicles.length > 1) ? 's' : '', vehiclesList);
           
-          var totalSlots = vehicles.reduce(function(total, { name, vehicle }) { return total + vehicle.nbSlots }, 0);
-          var missingSlots = self.participants.length - totalSlots;
+          let totalSlots = vehicles.reduce((total, { name, vehicle }) => total + vehicle.nbSlots, 0);
+          let missingSlots = this.participants.length - totalSlots;
           if (missingSlots > 0) {
             answer += sprintf('\nAttention : il manque %d place%s !', missingSlots, (missingSlots > 1) ? 's' : '');
           }
@@ -151,15 +146,15 @@ function Poll(name, isRestaurantPoll) {
     return answer;
   }
   
-  self.getPersonInCharge = function getPersonInCharge() {
-    var answer = '';
-    var participantsWithMentionNames = self.participants.filter(function (participant) { return participant.mentionName !== undefined; });
+  getPersonInCharge() {
+    let answer = '';
+    let participantsWithMentionNames = this.participants.filter(participant => participant.mentionName !== undefined);
     
     if (participantsWithMentionNames.length <= 0) {
       answer += "Il semble qu'aucun des participants ne soit un utilisateur HipChat (ajouts manuels...?). Il faudra donc désigner un G.O. vous-mêmes...!";
     }
     else {
-      var personInCharge = participantsWithMentionNames[Math.floor(Math.random() * self.participants.length)];
+      let personInCharge = participantsWithMentionNames[Math.floor(Math.random() * participantsWithMentionNames.length)];
       answer += sprintf("Aujourd'hui, %s sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.", personInCharge.mentionName);
       answer += '\nPour ses efforts, le G.O. aura le privilège de choisir sa place à table :)';
     }
@@ -173,15 +168,16 @@ function Poll(name, isRestaurantPoll) {
 // -----------------------------------------------------------------------------
 // Participant class
 // -----------------------------------------------------------------------------
-function Participant(name, mentionName, vehicle) {
-  var self = this;
-  self.name = name;
-  self.mentionName = mentionName;
-  self.vehicle = vehicle;
-}
-
-Participant.prototype.equal = function (other) {
-  return this.name === other.name;
+class Participant {
+  constructor(name, mentionName, vehicle) {
+    this.name = name;
+    this.mentionName = mentionName;
+    this.vehicle = vehicle;
+  }
+  
+  equal(other) {
+    return this.name === other.name;
+  }
 }
 
 
@@ -189,9 +185,10 @@ Participant.prototype.equal = function (other) {
 // -----------------------------------------------------------------------------
 // Vehicle class
 // -----------------------------------------------------------------------------
-function Vehicle(nbSlots) {
-  var self = this;
-  self.nbSlots = nbSlots;
+class Vehicle {
+  constructor(nbSlots) {
+    this.nbSlots = nbSlots;
+  }
 }
 
 
@@ -199,12 +196,13 @@ function Vehicle(nbSlots) {
 // -----------------------------------------------------------------------------
 // Command class
 // -----------------------------------------------------------------------------
-function Command(name, handler, usage, description) {
-  var self = this;
-  self.name = name;
-  self.handler = handler;
-  self.usage = sprintf('%s %s', baseCommand, usage);
-  self.description = description;
+class Command {
+  constructor(name, handler, usage, description) {
+    this.name = name;
+    this.handler = handler;
+    this.usage = sprintf('%s %s', baseCommand, usage);
+    this.description = description;
+  }
 }
 
 
@@ -213,7 +211,7 @@ function Command(name, handler, usage, description) {
 // Commands
 // -----------------------------------------------------------------------------
 // Dispatcher
-var dispatch = function dispatch(commandName, roomJid, sender, params, availableCommands) {
+const dispatch = function(commandName, roomJid, sender, params, availableCommands) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'commandName': commandName, 'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -224,7 +222,7 @@ var dispatch = function dispatch(commandName, roomJid, sender, params, available
   }
   
   // Dispatch command to its handler
-  var command = availableCommands.find(function (command) { return command.name === commandName; })
+  let command = availableCommands.find(command => command.name === commandName);
   if (command !== undefined) {
     command.handler.call(this, roomJid, sender, params);
   }
@@ -235,7 +233,7 @@ var dispatch = function dispatch(commandName, roomJid, sender, params, available
 
 // Command handlers
 // All command handlers must conform to the dispatcher definition
-var unknown = function unknown(roomJid, sender, params) {
+const unknown = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -243,7 +241,7 @@ var unknown = function unknown(roomJid, sender, params) {
   this.message(roomJid, sprintf('Commande inconnue ! Pour voir la liste des commandes disponibles : %s', helpCommand.usage));
 }
 
-var malformedCommand = function malformedCommand(roomJid, sender, params) {
+const malformedCommand = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -251,14 +249,14 @@ var malformedCommand = function malformedCommand(roomJid, sender, params) {
   this.message(roomJid, sprintf('Paramètres illégaux ou manquants pour cette commande ! Pour voir la syntaxe des commandes disponibles : %s', helpCommand.usage));
 }
 
-var help = function help(roomJid, sender, params) {
+const help = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
   // If asking for help with a specific command, deliver it
-  var answer = '';
+  let answer = '';
   if (params !== undefined) {
-    var command = publicCommands.find(function (command) { return command.name === params; })
+    let command = publicCommands.find(command => command.name === params);
     if (command !== undefined) {
       answer += sprintf('%s : %s', command.usage, command.description);
     }
@@ -270,15 +268,15 @@ var help = function help(roomJid, sender, params) {
   // Else display command list
   else {
     answer = 'Liste des commandes disponibles dans les salons publics :';
-    publicCommands.forEach(function(command) {
+    for (const command of publicCommands) {
       answer += sprintf('\n  %s : %s', command.usage, command.description);
-    });
+    }
   }
   
   this.message(sender.jid, answer);
 }
 
-var question = function question(roomJid, sender, params) {
+const question = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -297,7 +295,7 @@ var question = function question(roomJid, sender, params) {
   startPoll.call(this, roomJid, params, false);
 }
 
-var restaurant = function restaurant(roomJid, sender, params) {
+const restaurant = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -316,7 +314,7 @@ var restaurant = function restaurant(roomJid, sender, params) {
 }
 
 function startPoll(roomJid, name, isRestaurantPoll) {
-  var poll = new Poll(name, isRestaurantPoll);
+  let poll = new Poll(name, isRestaurantPoll);
   
   // Clear existing closed poll, if there is one
   if (hasPoll(roomJid)) {
@@ -325,19 +323,19 @@ function startPoll(roomJid, name, isRestaurantPoll) {
   
   polls[roomJid] = poll;
   logger.info('Starting a new poll', '"' + poll.name + '"', 'in room', roomJid);
-  var answer = sprintf('Nouveau sondage : "%s"', name);
-  var vehiclePrompt = ' Si vous avez une voiture précisez "voiture X places", et si vous allez en vélo précisez "vélo".';
+  let answer = sprintf('Nouveau sondage : "%s"', name);
+  let vehiclePrompt = ' Si vous avez une voiture précisez "voiture X places", et si vous allez en vélo précisez "vélo".';
   answer += sprintf(`\nRépondez par "oui" pour participer.%s Si vous changez d'avis, utilisez "annulation" pour vous retirer du sondage.`, (isRestaurantPoll) ? vehiclePrompt : '' );
   this.message(roomJid, answer);
 }
 
-var close = function close(roomJid, sender, params) {
+const close = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
   // Safeguard
   if (!hasPollRunning(roomJid)) {
-    var answer = 'Aucun sondage en cours. Il faut en lancer un avant...! :)'
+    let answer = 'Aucun sondage en cours. Il faut en lancer un avant...! :)'
     if (hasPoll) { answer += sprintf('\nPour les résultats du dernier sondage, utiliser la commande : %s', resultsCommand.usage); }
     
     this.message(roomJid, answer);
@@ -345,7 +343,7 @@ var close = function close(roomJid, sender, params) {
   }
   
   // Close poll and display final list of participants
-  var poll = polls[roomJid];
+  let poll = polls[roomJid];
   logger.info('Closing poll', '"' + poll.name + '"', 'in room', roomJid);
   poll.close();
   this.message(roomJid, poll.getResults());
@@ -355,7 +353,7 @@ var close = function close(roomJid, sender, params) {
   }
 }
 
-var results = function results(roomJid, sender, params) {
+const results = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -366,12 +364,12 @@ var results = function results(roomJid, sender, params) {
   }
   
   // Display current list of participants
-  var poll = polls[roomJid];
+  let poll = polls[roomJid];
   logger.info('Displaying list of participants to poll', '"' + poll.name + '"', 'in room', roomJid);
   this.message(roomJid, poll.getResults());
 }
 
-var ping = function ping(roomJid, sender, params) {
+const ping = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -382,12 +380,12 @@ var ping = function ping(roomJid, sender, params) {
   }
   
   // Ping current list of participants
-  var poll = polls[roomJid];
+  let poll = polls[roomJid];
   logger.info('Ping current list of participants to poll', '"' + poll.name + '"', 'in room', roomJid);
   this.message(roomJid, 'Ping ' + poll.getParticipantMentions().join(' '));
 }
 
-var add = function add(roomJid, sender, params) {
+const add = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -403,12 +401,12 @@ var add = function add(roomJid, sender, params) {
   }
   
   // Add user to participants
-  var poll = polls[roomJid];
-  var participantOrMentionName = params;
+  let poll = polls[roomJid];
+  let participantOrMentionName = params;
   logger.info('Manually adding', participantOrMentionName, 'to participants in room', roomJid);
   
   // Try to match participantOrMentionName with an existing HipChat user.
-  var participant = this.getUser({ name: participantOrMentionName, mentionName: participantOrMentionName });
+  let participant = this.getUser({ name: participantOrMentionName, mentionName: participantOrMentionName });
   
   // If we couldn't get a match, add given name 'as is'
   if (participant === undefined) {
@@ -416,7 +414,7 @@ var add = function add(roomJid, sender, params) {
   }
   
   // Helper variable for pretty printing
-  var participantPrintedName = participant.mentionName !== undefined ? participant.mentionName : participant.name;
+  let participantPrintedName = participant.mentionName !== undefined ? participant.mentionName : participant.name;
   
   if (poll.addParticipant(participant.name, participant.mentionName)) {
     // If we got a match, user will be pinged via his mentionName
@@ -427,7 +425,7 @@ var add = function add(roomJid, sender, params) {
   }
 }
 
-var remove = function remove(roomJid, sender, params) {
+const remove = function(roomJid, sender, params) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
@@ -443,8 +441,8 @@ var remove = function remove(roomJid, sender, params) {
   }
   
   // Remove user from participants
-  var poll = polls[roomJid];
-  var participantOrMentionName = params;
+  let poll = polls[roomJid];
+  let participantOrMentionName = params;
   logger.info('Manually removing', participantOrMentionName, 'from participants in room', roomJid);
   
   participant = poll.removeParticipant(participantOrMentionName);
@@ -458,17 +456,17 @@ var remove = function remove(roomJid, sender, params) {
 }
 
 // List of available commands, associated to their handlers
-var helpCommand = new Command('help', help, 'help', `Affiche la liste des commandes disponibles.`);
-var questionCommand = new Command('question', question, 'question <question>', `Démarre un nouveau sondage de type "Question".`);
-var restaurantCommand = new Command('restaurant', restaurant, 'restaurant <question>', `Démarre un nouveau sondage de type "Restaurant" (si non précisé, par défaut c'est Via Roma).`);
-var closeCommand = new Command('close', close, 'close', `Clôt le sondage, affiche les résultats, et désigne un responsable (dans le cas d'un sondage de type "Restaurant".`);
-var resultsCommand = new Command('results', results, 'results', `Affiche les résultats du sondage (en cours ou dernier sondage).`);
-var pingCommand = new Command('ping', ping, 'ping', `Notifie tous les participants du sondage (en cours ou dernier sondage).`);
-var addCommand = new Command('add', add, 'add <Bidule Truc>', sprintf(`Ajoute manuellement "Bidule Truc" à la liste des partipants du sondage en cours. Si c'est un utilisateur HipChat, il sera notifié lors des "%s" et peut modifier son enregistrement/véhicule sans avoir à se ré-enregistrer.`, pingCommand.usage));
-var removeCommand = new Command('remove', remove, 'remove <Bidule Truc>', `Supprime manuellement "Bidule Truc" de la liste des participants du sondage en cours. Au besoin, vous pouvez également l'utiliser pour annuler la réservation d'un collègue qui s'est enregistré mais n'a plus accès à HipChat (réunion, etc.).`);
+const helpCommand = new Command('help', help, 'help', `Affiche la liste des commandes disponibles.`);
+const questionCommand = new Command('question', question, 'question <question>', `Démarre un nouveau sondage de type "Question".`);
+const restaurantCommand = new Command('restaurant', restaurant, 'restaurant <question>', `Démarre un nouveau sondage de type "Restaurant" (si non précisé, par défaut c'est Via Roma).`);
+const closeCommand = new Command('close', close, 'close', `Clôt le sondage, affiche les résultats, et désigne un responsable (dans le cas d'un sondage de type "Restaurant".`);
+const resultsCommand = new Command('results', results, 'results', `Affiche les résultats du sondage (en cours ou dernier sondage).`);
+const pingCommand = new Command('ping', ping, 'ping', `Notifie tous les participants du sondage (en cours ou dernier sondage).`);
+const addCommand = new Command('add', add, 'add <Bidule Truc>', sprintf(`Ajoute manuellement "Bidule Truc" à la liste des partipants du sondage en cours. Si c'est un utilisateur HipChat, il sera notifié lors des "%s" et peut modifier son enregistrement/véhicule sans avoir à se ré-enregistrer.`, pingCommand.usage));
+const removeCommand = new Command('remove', remove, 'remove <Bidule Truc>', `Supprime manuellement "Bidule Truc" de la liste des participants du sondage en cours. Au besoin, vous pouvez également l'utiliser pour annuler la réservation d'un collègue qui s'est enregistré mais n'a plus accès à HipChat (réunion, etc.).`);
 
 // Public commands: available in public rooms
-var publicCommands = [
+const publicCommands = [
   helpCommand,
   questionCommand,
   restaurantCommand,
@@ -480,7 +478,7 @@ var publicCommands = [
 ]
 
 // Private commands: available in private chats
-var privateCommands = [
+const privateCommands = [
   helpCommand,
 ]
 
@@ -489,36 +487,36 @@ var privateCommands = [
 // -----------------------------------------------------------------------------
 // Global variables
 // -----------------------------------------------------------------------------
-var polls = {};
-var acceptConditions = new RegExp('^(yes|oui|yep|ouep|moi|ja)');
-var bikeConditions = new RegExp('bike|v[eé]lo');
-var carConditions = new RegExp('voiture ?([1-9]\\d*) ?places?');
-var cancelConditions = new RegExp('^(cancel|annulation)');
+const polls = {};
+const acceptConditions = new RegExp('^(yes|oui|yep|ouep|moi|ja)');
+const bikeConditions = new RegExp('bike|v[eé]lo');
+const carConditions = new RegExp('voiture ?([1-9]\\d*) ?places?');
+const cancelConditions = new RegExp('^(cancel|annulation)');
 
 
 
 // -----------------------------------------------------------------------------
 // Event handlers
 // -----------------------------------------------------------------------------
-var onCommandMessage = function onCommandMessage(roomJid, senderName, message, matches) {
+const onCommandMessage = function(roomJid, senderName, message, matches) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'senderName': senderName, 'message': message, 'matches': matches}, {'matches': matches});
 
   // Dispatch command to its handler
-  var [command, params] = [matches[1], matches[2]];
+  let [command, params] = [matches[1], matches[2]];
   dispatch.call(this, command, roomJid, this.getUser({ name: senderName }), params, publicCommands);
 };
 
-var onPrivateCommandMessage = function onPrivateCommandMessage(senderJid, message, matches) {
+const onPrivateCommandMessage = function(senderJid, message, matches) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'senderJid': senderJid, 'message': message, 'matches': matches}, {'matches': matches});
   
   // Dispatch command to its handler
-  var [command, params] = [matches[1], matches[2]];
+  let [command, params] = [matches[1], matches[2]];
   dispatch.call(this, command, senderJid, this.getUser({ name: senderJid }), params, privateCommands);
 };
 
-var onMessage = function onMessage(roomJid, senderName, message) {
+const onMessage = function(roomJid, senderName, message) {
   // Logging
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'senderName': senderName, 'message': message});
   
@@ -528,8 +526,8 @@ var onMessage = function onMessage(roomJid, senderName, message) {
   }
   
   // Register a new participant
-  var poll = polls[roomJid];
-  var participant = this.getUser({ name: senderName });
+  let poll = polls[roomJid];
+  let participant = this.getUser({ name: senderName });
   
   if (acceptConditions.test(message)) {
     if (poll.addParticipant(participant.name, participant.mentionName)) {
@@ -548,12 +546,12 @@ var onMessage = function onMessage(roomJid, senderName, message) {
   
   // If poll is of type "Restaurant", check for vehicles
   if (poll.isRestaurantPoll) {
-    var vehicle = undefined;
+    let vehicle = undefined;
     if (bikeConditions.test(message)) {
       vehicle = new Vehicle(1);
     }
     if (carConditions.test(message)) {
-      var nbSlots = message.match(carConditions)[1];
+      let nbSlots = message.match(carConditions)[1];
       vehicle = new Vehicle(nbSlots);
     }
     
@@ -580,10 +578,10 @@ function hasPollRunning(roomJid) {
 }
 
 function startsWith(message, conditions) {
-  var match = false;
+  let match = false;
   message = message.toLowerCase();
   
-  conditions.forEach(function (condition) {
+  conditions.forEach(condition => {
     if (message.startsWith(condition)) { match = true; }
   });
   

@@ -21,16 +21,16 @@ module.exports.level = 'warn';
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
-var fs = require('fs');
+const fs = require('fs');
 
-var wobot = require('wobot');
-var logger = require('loglevel').getLogger(module.exports.name);
-var loglevelMessagePrefix = require('loglevel-message-prefix');
+const wobot = require('wobot');
+const logger = require('loglevel').getLogger(module.exports.name);
+const loglevelMessagePrefix = require('loglevel-message-prefix');
 
-var logHelper = require('./utils/LogHelper');
+const logHelper = require('./utils/LogHelper');
 logHelper.setLevel(logger, module.exports.level);
 
-var pollPlugin = require('./plugins/PollPlugin');
+const pollPlugin = require('./plugins/PollPlugin');
 
 
 
@@ -48,14 +48,14 @@ loglevelMessagePrefix(logger, logHelper.logLevelMessagePrefix(module.exports.nam
 // Initialization
 // -----------------------------------------------------------------------------
 // Get credentials
-var credentialsString = fs.readFileSync('credentials', 'utf-8');
-var [jid, password, defaultRoom] = credentialsString.split(/\s+/);
+let credentialsString = fs.readFileSync('credentials', 'utf-8');
+let [jid, password, defaultRoom] = credentialsString.split(/\s+/);
 logger.debug('jid:', jid);
 logger.debug('password: Nope! Chuck Testa');
 logger.debug('defaultRoom:', defaultRoom);
 
 // Instantiate bot
-var bot = new wobot.Bot({
+let bot = new wobot.Bot({
   jid: jid + '/pollbot',
   password: password,
 });
@@ -126,7 +126,7 @@ bot.onDisconnect(function onDisconnect() {
 // -----------------------------------------------------------------------------
 // Utils
 // -----------------------------------------------------------------------------
-bot.getUser = function getUser( { name, jid, mentionName } = {}, refreshOnMiss = true) {
+bot.getUser = function({ name, jid, mentionName } = {}, refreshOnMiss = true) {
   // Safeguard
   if (name === undefined && jid === undefined && mentionName === undefined) {
     logger.error('Invalid parameters provided to getUser().');
@@ -134,8 +134,8 @@ bot.getUser = function getUser( { name, jid, mentionName } = {}, refreshOnMiss =
   }
   
   // Search for user in cached list
-  var user;
-  for (var key in this.users) {
+  let user;
+  for (let key in this.users) {
     if (name !== undefined && key === name) { user = this.users[key]; break; }
     else if (jid !== undefined && this.users[key].jid === jid) { user = this.users[key]; break; }
     else if (mentionName !== undefined && this.users[key].mentionName === mentionName) { user = this.users[key]; break; }
@@ -145,7 +145,7 @@ bot.getUser = function getUser( { name, jid, mentionName } = {}, refreshOnMiss =
   if (user === undefined && refreshOnMiss) {
     this.refreshUsers();
     
-    for (var key in this.users) {
+    for (let key in this.users) {
       if (name !== undefined && key === name) { user = this.users[key]; break; }
       else if (jid !== undefined && this.users[key].jid === jid) { user = this.users[key]; break; }
       else if (mentionName !== undefined && this.users[key].mentionName === mentionName) { user = this.users[key]; break; }
@@ -155,17 +155,17 @@ bot.getUser = function getUser( { name, jid, mentionName } = {}, refreshOnMiss =
   return user;
 }
 
-bot.refreshUsers = function refreshUsers() {
+bot.refreshUsers = function() {
   // Refresh users list
   logger.info('Refreshing user list');
   users = {};
   
-  this.getRoster(function(err, roster, stanza) {
-    roster.forEach(function(user) {
+  this.getRoster((err, roster, stanza) => {
+    for (user of roster) {
       user.mentionName = '@' + user.mention_name;
       delete user.mention_name;
       users[user.name] = user;
-    });
+    }
   });
   
   this.users = users;
