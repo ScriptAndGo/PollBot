@@ -8,7 +8,6 @@ module.exports.name = 'PollPlugin';
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
-const sprintf = require("sprintf-js").sprintf;
 const logger = require('loglevel').getLogger(module.exports.name);
 const loglevelMessagePrefix = require('loglevel-message-prefix');
 
@@ -29,7 +28,7 @@ loglevelMessagePrefix(logger, logHelper.logLevelMessagePrefix(module.exports.nam
 // Wobot plugin definition
 // -----------------------------------------------------------------------------
 const baseCommand = '!poll'
-const condition = new RegExp('^' + baseCommand + '(?=$| )(?: (\\w+))?(?: (.*))?$', 'i');
+const condition = new RegExp(`^${baseCommand}(?=$| )(?: (\\w+))?(?: (.*))?$`, 'i');
 
 module.exports.load = function load(bot) {
   // Logging
@@ -39,7 +38,7 @@ module.exports.load = function load(bot) {
   bot.onMessage(condition, onCommandMessage);
   bot.onPrivateMessage(condition, onPrivateCommandMessage);
   bot.onMessage(onMessage);
-};
+}
 
 
 
@@ -97,7 +96,7 @@ class Poll {
   getParticipant( { name, mentionName } = {} ) {
     // Safeguard
     if (name === undefined && mentionName === undefined) {
-      logger.error('Invalid parameters provided to getParticipant().');
+      logger.error(`Invalid parameters provided to ${arguments.callee.name}()`);
       return;
     }
     
@@ -119,12 +118,12 @@ class Poll {
   }
   
   getResults() {
-    let answer = sprintf('Résultats %s pour le sondage "%s" :', (this.isOpen) ? "temporaires" : "finaux", this.name);
+    let answer = `Résultats ${(this.isOpen) ? "temporaires" : "finaux"} pour le sondage "${this.name}" :`;
     if (this.participants.length <= 0) {
       answer += "\nÀ première vue, personne... :/";
     }
     else {
-      answer += sprintf('\n%d participant%s : %s', this.participants.length, (this.participants.length > 1) ? 's' : '', this.getParticipantNames().join(', '));
+      answer += `\n${this.participants.length} participant${(this.participants.length > 1) ? 's' : ''} : ${this.getParticipantNames().join(', ')}`;
       
       if (this.isRestaurantPoll) {
         let vehicles = this.getParticipantVehicles();
@@ -132,13 +131,13 @@ class Poll {
           answer += "\nAucun véhicule... il va falloir marcher !";
         }
         else {
-          let vehiclesList = vehicles.map(({ name, vehicle }) => sprintf('%s (%s)', name, vehicle.nbSlots)).join(', ');
-          answer += sprintf('\n%d véhicule%s : %s', vehicles.length, (vehicles.length > 1) ? 's' : '', vehiclesList);
+          let vehiclesList = vehicles.map(({ name, vehicle }) => `${name} (${vehicle.nbSlots})`).join(', ');
+          answer += `\n${vehicles.length} véhicule${(vehicles.length > 1) ? 's' : ''} : ${vehiclesList}`;
           
           let totalSlots = vehicles.reduce((total, { name, vehicle }) => total + vehicle.nbSlots, 0);
           let missingSlots = this.participants.length - totalSlots;
           if (missingSlots > 0) {
-            answer += sprintf('\nAttention : il manque %d place%s !', missingSlots, (missingSlots > 1) ? 's' : '');
+            answer += `\nAttention : il manque ${missingSlots} place${(missingSlots > 1) ? 's' : ''} !`;
           }
         }
       }
@@ -155,7 +154,7 @@ class Poll {
     }
     else {
       let personInCharge = participantsWithMentionNames[Math.floor(Math.random() * participantsWithMentionNames.length)];
-      answer += sprintf("Aujourd'hui, %s sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.", personInCharge.mentionName);
+      answer += `Aujourd'hui, ${personInCharge.mentionName} sera G.O. ; en charge de la réservation, de la répartition des véhicules, et du départ en bon ordre de tout le monde.`;
       answer += '\nPour ses efforts, le G.O. aura le privilège de choisir sa place à table :)';
     }
     
@@ -200,7 +199,7 @@ class Command {
   constructor(name, handler, usage, description) {
     this.name = name;
     this.handler = handler;
-    this.usage = sprintf('%s %s', baseCommand, usage);
+    this.usage = `${baseCommand} ${usage}`;
     this.description = description;
   }
 }
@@ -238,7 +237,7 @@ const unknown = function(roomJid, sender, params) {
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
   // Display standard "unknown command" string
-  this.message(roomJid, sprintf('Commande inconnue ! Pour voir la liste des commandes disponibles : %s', helpCommand.usage));
+  this.message(roomJid, `Commande inconnue ! Pour voir la liste des commandes disponibles : ${helpCommand.usage}`);
 }
 
 const malformedCommand = function(roomJid, sender, params) {
@@ -246,7 +245,7 @@ const malformedCommand = function(roomJid, sender, params) {
   logHelper.functionCallDebug(logger, arguments.callee.name, {'roomJid': roomJid, 'sender': sender, 'params': params});
   
   // Display standard "malformed parameters" string
-  this.message(roomJid, sprintf('Paramètres illégaux ou manquants pour cette commande ! Pour voir la syntaxe des commandes disponibles : %s', helpCommand.usage));
+  this.message(roomJid, `Paramètres illégaux ou manquants pour cette commande ! Pour voir la syntaxe des commandes disponibles : ${helpCommand.usage}`);
 }
 
 const help = function(roomJid, sender, params) {
@@ -258,7 +257,7 @@ const help = function(roomJid, sender, params) {
   if (params !== undefined) {
     let command = publicCommands.find(command => command.name === params);
     if (command !== undefined) {
-      answer += sprintf('%s : %s', command.usage, command.description);
+      answer += `${command.usage} : ${command.description}`;
     }
     else {
       unknown.call(this, roomJid, sender, params);
@@ -269,7 +268,7 @@ const help = function(roomJid, sender, params) {
   else {
     answer = 'Liste des commandes disponibles dans les salons publics :';
     for (const command of publicCommands) {
-      answer += sprintf('\n  %s : %s', command.usage, command.description);
+      answer += `\n  ${command.usage} : ${command.description}`;
     }
   }
   
@@ -322,10 +321,10 @@ function startPoll(roomJid, name, isRestaurantPoll) {
   }
   
   polls[roomJid] = poll;
-  logger.info('Starting a new poll', '"' + poll.name + '"', 'in room', roomJid);
-  let answer = sprintf('Nouveau sondage : "%s"', name);
+  logger.info(`Starting a new poll "${poll.name}" in room`, roomJid);
+  let answer = `Nouveau sondage : "${name}"`;
   let vehiclePrompt = ' Si vous avez une voiture précisez "voiture X places", et si vous allez en vélo précisez "vélo".';
-  answer += sprintf(`\nRépondez par "oui" pour participer.%s Si vous changez d'avis, utilisez "annulation" pour vous retirer du sondage.`, (isRestaurantPoll) ? vehiclePrompt : '' );
+  answer += `\nRépondez par "oui" pour participer.${(isRestaurantPoll) ? vehiclePrompt : ''} Si vous changez d'avis, utilisez "annulation" pour vous retirer du sondage.`;
   this.message(roomJid, answer);
 }
 
@@ -336,7 +335,7 @@ const close = function(roomJid, sender, params) {
   // Safeguard
   if (!hasPollRunning(roomJid)) {
     let answer = 'Aucun sondage en cours. Il faut en lancer un avant...! :)'
-    if (hasPoll) { answer += sprintf('\nPour les résultats du dernier sondage, utiliser la commande : %s', resultsCommand.usage); }
+    if (hasPoll) { answer += `\nPour les résultats du dernier sondage, utiliser la commande : ${resultsCommand.usage}`; }
     
     this.message(roomJid, answer);
     return;
@@ -344,7 +343,7 @@ const close = function(roomJid, sender, params) {
   
   // Close poll and display final list of participants
   let poll = polls[roomJid];
-  logger.info('Closing poll', '"' + poll.name + '"', 'in room', roomJid);
+  logger.info(`Closing poll "${poll.name}" in room`, roomJid);
   poll.close();
   this.message(roomJid, poll.getResults());
   
@@ -365,7 +364,7 @@ const results = function(roomJid, sender, params) {
   
   // Display current list of participants
   let poll = polls[roomJid];
-  logger.info('Displaying list of participants to poll', '"' + poll.name + '"', 'in room', roomJid);
+  logger.info(`Displaying list of participants to poll "${poll.name}" in room`, roomJid);
   this.message(roomJid, poll.getResults());
 }
 
@@ -381,8 +380,8 @@ const ping = function(roomJid, sender, params) {
   
   // Ping current list of participants
   let poll = polls[roomJid];
-  logger.info('Ping current list of participants to poll', '"' + poll.name + '"', 'in room', roomJid);
-  this.message(roomJid, 'Ping ' + poll.getParticipantMentions().join(' '));
+  logger.info(`Ping current list of participants to poll "${poll.name}" in room`, roomJid);
+  this.message(roomJid, `Ping ${poll.getParticipantMentions().join(' ')}`);
 }
 
 const add = function(roomJid, sender, params) {
@@ -418,10 +417,10 @@ const add = function(roomJid, sender, params) {
   
   if (poll.addParticipant(participant.name, participant.mentionName)) {
     // If we got a match, user will be pinged via his mentionName
-    this.message(roomJid, sprintf('%s a été ajouté à la liste des participants.', participantPrintedName));
+    this.message(roomJid, `${participantPrintedName} a été ajouté à la liste des participants.`);
   }
   else {
-    this.message(roomJid, sprintf('%s participe déjà !', participantPrintedName));
+    this.message(roomJid, `${participantPrintedName} participe déjà !`);
   }
 }
 
@@ -448,10 +447,10 @@ const remove = function(roomJid, sender, params) {
   participant = poll.removeParticipant(participantOrMentionName);
   if (participant !== false) {
     // If participant was a HipChat user, he will be pinged via his mentionName
-    this.message(roomJid, sprintf('%s a été retiré de la liste des participants.', participant.mentionName !== undefined ? participant.mentionName : participant.name));
+    this.message(roomJid, `${participant.mentionName !== undefined ? participant.mentionName : participant.name} a été retiré de la liste des participants.`);
   }
   else {
-    this.message(roomJid, sprintf('"%s" ne correspond à aucun participant existant.', participantOrMentionName));
+    this.message(roomJid, `"${participantOrMentionName}" ne correspond à aucun participant existant.`);
   }
 }
 
@@ -462,7 +461,7 @@ const restaurantCommand = new Command('restaurant', restaurant, 'restaurant <que
 const closeCommand = new Command('close', close, 'close', `Clôt le sondage, affiche les résultats, et désigne un responsable (dans le cas d'un sondage de type "Restaurant".`);
 const resultsCommand = new Command('results', results, 'results', `Affiche les résultats du sondage (en cours ou dernier sondage).`);
 const pingCommand = new Command('ping', ping, 'ping', `Notifie tous les participants du sondage (en cours ou dernier sondage).`);
-const addCommand = new Command('add', add, 'add <Bidule Truc>', sprintf(`Ajoute manuellement "Bidule Truc" à la liste des partipants du sondage en cours. Si c'est un utilisateur HipChat, il sera notifié lors des "%s" et peut modifier son enregistrement/véhicule sans avoir à se ré-enregistrer.`, pingCommand.usage));
+const addCommand = new Command('add', add, 'add <Bidule Truc>', `Ajoute manuellement "Bidule Truc" à la liste des partipants du sondage en cours. Si c'est un utilisateur HipChat, il sera notifié lors des "${pingCommand.usage}" et peut modifier son enregistrement/véhicule sans avoir à se ré-enregistrer.`);
 const removeCommand = new Command('remove', remove, 'remove <Bidule Truc>', `Supprime manuellement "Bidule Truc" de la liste des participants du sondage en cours. Au besoin, vous pouvez également l'utiliser pour annuler la réservation d'un collègue qui s'est enregistré mais n'a plus accès à HipChat (réunion, etc.).`);
 
 // Public commands: available in public rooms
@@ -532,7 +531,7 @@ const onMessage = function(roomJid, senderName, message) {
   if (acceptConditions.test(message)) {
     if (poll.addParticipant(participant.name, participant.mentionName)) {
       logger.info('Adding', participant.name, 'to participants in room', roomJid);
-      this.message(participant.jid, sprintf('Vous avez été ajouté à la liste des participants pour le sondage "%s" !', poll.name))
+      this.message(participant.jid, `Vous avez été ajouté à la liste des participants pour le sondage "${poll.name}" !`);
     }
   }
   
@@ -540,7 +539,7 @@ const onMessage = function(roomJid, senderName, message) {
   else if (cancelConditions.test(message)) {
     if (poll.removeParticipant(participant.name)) {
       logger.info('Cancelling', participant.name, 'participation in room', roomJid);
-      this.message(participant.jid, sprintf('Vous avez été retiré de la liste des participants pour le sondage "%s" !', poll.name))
+      this.message(participant.jid, `Vous avez été retiré de la liste des participants pour le sondage "${poll.name}" !`);
     }
   }
   
@@ -559,7 +558,7 @@ const onMessage = function(roomJid, senderName, message) {
     if (vehicle !== undefined) {
       if (poll.updateParticipantVehicle(participant.name, vehicle)) {
         logger.info('Updating', participant.name, "'s vehicle in room", roomJid);
-        this.message(participant.jid, sprintf('Votre véhicule (%d places) a bien été enregistré :)', vehicle.nbSlots))
+        this.message(participant.jid, `Votre véhicule (${vehicle.nbSlots} places) a bien été enregistré :)`);
       }
     }
   }

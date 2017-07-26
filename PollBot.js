@@ -56,8 +56,8 @@ logger.debug('defaultRoom:', defaultRoom);
 
 // Instantiate bot
 let bot = new wobot.Bot({
-  jid: jid + '/pollbot',
-  password: password,
+  jid: `${jid}/pollbot`,
+  password,
 });
 
 // Create user list
@@ -81,7 +81,7 @@ bot.onConnect(function onConnect() {
   // Connect, join default room, and initialize user list
   logger.info('Connected to HipChat!\n  Server:', bot.mucHost, '\n  JID:', bot.jid, '\n  Name:', bot.name);
   if (defaultRoom !== undefined) {
-      this.join(defaultRoom + '@' + bot.mucHost);
+      this.join(`${defaultRoom}@${bot.mucHost}`);
       logger.info('Automatically joined default room:', defaultRoom);
   }
   this.refreshUsers();
@@ -129,7 +129,7 @@ bot.onDisconnect(function onDisconnect() {
 bot.getUser = function({ name, jid, mentionName } = {}, refreshOnMiss = true) {
   // Safeguard
   if (name === undefined && jid === undefined && mentionName === undefined) {
-    logger.error('Invalid parameters provided to getUser().');
+    logger.error(`Invalid parameters provided to ${arguments.callee.name}()`);
     return;
   }
   
@@ -162,7 +162,7 @@ bot.refreshUsers = function() {
   
   this.getRoster((err, roster, stanza) => {
     for (user of roster) {
-      user.mentionName = '@' + user.mention_name;
+      user.mentionName = `@${user.mention_name}`;
       delete user.mention_name;
       users[user.name] = user;
     }

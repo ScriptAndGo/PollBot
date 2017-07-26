@@ -23,8 +23,8 @@ module.exports.logLevelMessagePrefix = function(name) {
         locale: 'fr-FR'
       }
     }
-  }
-};
+  };
+}
 
 
 
@@ -39,7 +39,7 @@ const loglevelToNumber = function loglevelToNumber(logger, level) {
     return level;
   }
   else {
-    console.log('Invalid level value: ' + level);
+    console.log(`Invalid level value: ${level}`);
     return;
   }
 }
@@ -75,13 +75,13 @@ module.exports.functionCall = function(logger, functionName, functionArgs = {}, 
   args = []
   if (functionArgs !== undefined) {
     for (let key in functionArgs) {
-      args.push('\n  ' + key + ':');
+      args.push(`\n  ${key}:`);
       args.push(functionArgs[key]);
     }
   }
   
   if (logger.getLevel() <= level) {
-    module.exports.log(logger, level)(functionName + '()', ...args);
+    module.exports.log(logger, level)(`${functionName}()`, ...args);
   }
 }
 
