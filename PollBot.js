@@ -28,9 +28,24 @@ const logger = require('loglevel').getLogger(module.exports.name);
 const loglevelMessagePrefix = require('loglevel-message-prefix');
 
 const logHelper = require('./utils/LogHelper');
-logHelper.setLevel(logger, module.exports.level);
 
-const pollPlugin = require('./plugins/PollPlugin');
+
+
+// -----------------------------------------------------------------------------
+// Settings
+// -----------------------------------------------------------------------------
+// Get settings, sanitize, and assign
+let [jid, password, defaultRoom, loglevel] = fs.readFileSync('PollBot.settings', 'utf-8').split(/\s+/).map(setting => {
+  setting = setting.trim();
+  if (setting.length === 0) { setting = undefined };
+  return setting;
+});
+
+// Set user-defined log level and apply globally (if none found, defaults to value declared at the top)
+if (loglevel !== undefined) {
+  module.exports.level = loglevel;
+}
+logHelper.setLevel(logger, module.exports.level);
 
 
 
@@ -47,12 +62,17 @@ loglevelMessagePrefix(logger, logHelper.logLevelMessagePrefix(module.exports.nam
 // -----------------------------------------------------------------------------
 // Initialization
 // -----------------------------------------------------------------------------
-// Get credentials
-let credentialsString = fs.readFileSync('credentials', 'utf-8');
-let [jid, password, defaultRoom] = credentialsString.split(/\s+/);
 logger.debug('jid:', jid);
 logger.debug('password: Nope! Chuck Testa');
 logger.debug('defaultRoom:', defaultRoom);
+logger.debug('loglevel:', loglevel);
+logger.debug('module.exports.level:', module.exports.level);
+
+// Safeguard
+if (jid === undefined || password === undefined) {
+  logger.error('Could not find required settings "jid" and "password" from "PollBot.settings"');
+  process.exit(1);
+}
 
 // Instantiate bot
 let bot = new wobot.Bot({
@@ -64,6 +84,7 @@ let bot = new wobot.Bot({
 bot.users = {};
 
 // Load plugins
+const pollPlugin = require('./plugins/PollPlugin');
 bot.loadPlugin(pollPlugin.name, pollPlugin);
 
 // Connect to HipChat server

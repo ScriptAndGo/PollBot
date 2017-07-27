@@ -7,10 +7,11 @@ A HipChat bot for simple question polls and restaurant polls, using [cjoudrey/wo
 - Clone this repository.
 - Install dependencies by running `npm install wobot loglevel loglevel-message-prefix` in project root.
 - Create a bot account on your HipChat server, if there's not one already.
-- Create a file named `credentials` next to `PollBot.js`, with the following information separated by whitespace of your choice (newline, spaces, etc.):
+- Create a file named `PollBot.settings` next to `PollBot.js`, with the following information separated by whitespace of your choice (newline, spaces, etc.):
   - `jid`: Account's Jabber ID (obtained from HipChat account settings).
   - `password`: Account's password.
   - (Optional) `defaultRoom`: Jabber name of room to join automatically on connect.
+  - (Optional) `loglevel`: Global logging level (see `PollBot.js`, defaults to `warn`).
 - Run `node PollBot.js`: the bot should now be connected to the server.
 - Invite the bot to the room of your choice (or use `defaultRoom` above).
 
