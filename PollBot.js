@@ -50,7 +50,7 @@ logHelper.setLevel(logger, module.exports.level);
 
 
 // -----------------------------------------------------------------------------
-// loglevel definition
+// loglevel setup
 // -----------------------------------------------------------------------------
 // You can change the logging level of each module individually for easier debugging
 // logger.setLevel('debug');

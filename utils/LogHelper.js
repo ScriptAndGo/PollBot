@@ -6,7 +6,7 @@ module.exports.name = 'LogHelper';
 
 
 // -----------------------------------------------------------------------------
-// loglevel definition
+// loglevel setup
 // -----------------------------------------------------------------------------
 // Possible values: 'silent', 'error', 'warn', 'info', 'debug', 'trace'
 module.exports.setLevel = function(logger, level) {
