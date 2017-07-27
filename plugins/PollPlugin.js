@@ -512,7 +512,7 @@ const onPrivateCommandMessage = function(senderJid, message, matches) {
   
   // Dispatch command to its handler
   let [command, params] = [matches[1], matches[2]];
-  dispatch.call(this, command, senderJid, this.getUser({ name: senderJid }), params, privateCommands);
+  dispatch.call(this, command, senderJid, this.getUser({ jid: senderJid }), params, privateCommands);
 };
 
 const onMessage = function(roomJid, senderName, message) {
