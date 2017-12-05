@@ -487,7 +487,7 @@ const privateCommands = [
 // Global variables
 // -----------------------------------------------------------------------------
 const polls = {};
-const acceptConditions = new RegExp('^(yes|oui|yep|ouep|moi|ja)', 'i');
+const acceptConditions = new RegExp('^(yes|oui|yep|ouep|moi|ja|はい|да)', 'i');
 const bikeConditions = new RegExp('bike|v[eé]lo', 'i');
 const carConditions = new RegExp('voiture ?([1-9]\\d*) ?places?', 'i');
 const cancelConditions = new RegExp('^(cancel|annulation)', 'i');
