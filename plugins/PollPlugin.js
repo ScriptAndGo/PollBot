@@ -488,8 +488,8 @@ const privateCommands = [
 // -----------------------------------------------------------------------------
 const polls = {};
 const acceptConditions = new RegExp('^(yes|oui|yep|ouep|moi|ja)', 'i');
-const bikeConditions = new RegExp('bike|v[eé]lo', 'i');
-const carConditions = new RegExp('voiture ?([1-9]\\d*) ?places?', 'i');
+const bikeConditions = new RegExp('bike|v[eé]lo(?:cip[eè]de)|b[eé]cane|bycicle(?:tte)|tandem', 'i');
+const carConditions = new RegExp('(?:voiture|v[eé]hicule|auto(?:mobile)?|bagnole|tacot|berline|caisse|attelage|camion|char(?:rette|iotte)|poubelle|titine|tuture|potdeyaourt|carrosse|carriole|cal[eè]che|tank|tape-?cul|poney|roulotte|brouette|guimbarde|coucou|bahut) ?([1-9]\\d*) ?places?', 'i');
 const cancelConditions = new RegExp('^(cancel|annulation)', 'i');
 
 
