@@ -66,14 +66,14 @@ else if (argv.restart) {
 else if (validArg === false) {
   var usage = `Invalid arguments.
 Usage:
-  node WindowsServce.js --install
-  node WindowsServce.js --uninstall
-  node WindowsServce.js --reinstall
-  node WindowsServce.js --update
+  node WindowsService.js --install
+  node WindowsService.js --uninstall
+  node WindowsService.js --reinstall
+  node WindowsService.js --update
   
-  node WindowsServce.js --start
-  node WindowsServce.js --stop
-  node WindowsServce.js --restart`
+  node WindowsService.js --start
+  node WindowsService.js --stop
+  node WindowsService.js --restart`
   console.log(usage);
 }
 
